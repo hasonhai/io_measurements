@@ -1,0 +1,113 @@
+\documentclass{acmsig}
+
+\usepackage[color=yellow,obeyFinal]{todonotes}
+\usepackage{graphicx}
+\usepackage{epstopdf}
+\usepackage{float}
+\usepackage{varioref}
+\usepackage{mathtools}
+\usepackage{xspace}
+\usepackage{subfigure}
+\usepackage{hyperref}
+\usepackage{balance}
+\usepackage{listings}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{paralist}
+\usepackage{cite}
+\usepackage{color}
+
+\usepackage{xcolor}
+\definecolor{dark-red}{rgb}{0.4,0.15,0.15}
+\definecolor{dark-blue}{rgb}{0.15,0.15,0.4}
+\definecolor{medium-blue}{rgb}{0,0,0.5}
+\hypersetup{
+  colorlinks, linkcolor={dark-red},
+  citecolor={dark-blue}, urlcolor={medium-blue}
+}
+
+\newcommand{\etal}{\textit{et al.}\xspace}
+\newcommand{\eg}{\textit{e.g.}\xspace}
+\newcommand{\ie}{\textit{i.e.}\xspace}
+\newcommand{\etc}{\textit{etc.}\xspace}
+\newcommand{\vs}{\textit{vs.}\xspace}
+\newcommand{\keyval}{$\langle\text{key}, \text{value}\rangle$\xspace}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+
+\newcommand{\noteby}[2]{\todo[inline]{#2\hspace*{\fill}\mbox{ --#1}}}
+
+\lstset{frame=tb,
+  language=SQL,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{blue},
+  stringstyle=\color{mauve},
+  keywordstyle=\color{blue},
+  commentstyle=\color{Brown},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true
+  tabsize=3
+}
+
+% correct bad hyphenation here
+\hyphenation{op-tical net-works semi-conduc-tor}
+
+
+\begin{document}
+
+% paper title
+% can use linebreaks \\ within to get better formatting as desired
+% \title{Automatic MapReduce ROLLUP}
+\title{This is our title}
+
+
+% author names and affiliations
+% use a multiple column layout for up to three different
+% affiliations
+\numberofauthors{4}
+\author{
+\alignauthor
+Ha Son Hai\\
+       \affaddr{Orange/EURECOM}\\
+       \email{sonhai@eurecom.fr}
+\alignauthor
+Daniele Venzano\\
+       \affaddr{EURECOM}\\
+       \email{venzano@eurecom.fr}
+\and
+\alignauthor 
+Patrick Brown
+       \affaddr{Orange}\\
+       \email{p.brown@orange.fr}
+\alignauthor 
+Pietro Michiardi
+       \affaddr{EURECOM}\\
+       \email{michiard@eurecom.fr}
+}
+
+% make the title area
+\maketitle
+
+
+\begin{abstract}
+Still very abstract
+\end{abstract}
+
+\section{Introduction}
+
+
+
+%%%%%%%%%%%%
+% THIS PART IS FOR THE REFERENCE SECTION
+%%%%%%%%%%%%
+% \balance
+% \bibliographystyle{abbrv}
+% \bibliography{ref}
+
+\end{document}
