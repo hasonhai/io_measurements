@@ -99,7 +99,128 @@ Pietro Michiardi
 Still very abstract
 \end{abstract}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Background and Related Work}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Problem statement}
+\begin{itemize}
+  \item \textit{What we do?}
+  \begin{itemize}
+    \item Experimental study of virtualization overheads for I/O operations
+    \item We want to have the typical I/O ``pressure'' that comes from data-intensive applications
+    \item We want to have the view from the ``guest operating system'' and the view from the applications (and see if there are differences)
+  \end{itemize}
+  \item \textit{Why and why is it important?}
+  \begin{itemize}
+    \item It is common wisdom that virtualization is ``bad'' for performance. Is it true?
+    \item Given the knowledge about performance bottlenecks and eventual overheads of virtualization, is this going to be helpful for the applications we consider?
+  \end{itemize}
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{The methodology}
+
+\subsection{The system under measurement}
+\begin{itemize}
+  \item Platform description
+  \begin{itemize}
+    \item Hardware
+    \begin{itemize}
+      \item Network architecture
+      \item Disk subsystem: RAID controller, ...
+    \end{itemize}
+    \item Software
+    \begin{itemize}
+      \item Hypervisor
+      \item OVS
+      \item Host file-system
+      \item LVM
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+
+\subsection{The measurement methodology}
+\begin{itemize}
+  \item A software framework to perform repeatable experiments
+  \item A way to collect ``logs'' and analyze them
+  \item A way to describe ``application-level'' I/O patterns, and implement them through measurements
+  \item A way to instrument or to use the logs of data-intensive applications to collect measurement from their perspective
+  \begin{itemize}
+    \item Applications we consider: Hadoop, Spark, NoDB
+  \end{itemize}
+\end{itemize}
+
+\subsection{The performance/overheads metrics}
+\noteby{pm}{Should we consider over subscription as an important parameter??????}
+\begin{itemize}
+  \item Statistical methodology
+  \item Metrics:
+  \begin{itemize}
+    \item Network
+    \begin{itemize}
+      \item Throughput
+      \item Latency
+      \item Jain Fairness index (in case of concurrent access patterns)
+      \item CPU vs. network utilization
+    \end{itemize}
+    \item Disk
+    \begin{itemize}
+      \item Throughput
+      \item Latency
+      \item Jain Fairness index (in case of concurrent access patterns)
+      \item CPU vs. disk utilization
+    \end{itemize}
+  \end{itemize}
+\end{itemize}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Results}
+
+\begin{itemize}
+  \item We present results per each scenario we consider, such that here we will have a number of subsections that are ``self-contained'', that is, they describe the scenario, to which application pattern it is matching, and then we present the results
+\end{itemize}
+
+\subsection{Single physical host}
+\noteby{pm}{what does exactly mean ``fat''? should we make it with capacity equal to the sum of the capacity of multiple VMs?}
+\noteby{dv}{We should take into account, for the measurements that include interference, which CPU Package the interfering vm is placed in}
+\begin{itemize}
+  \item Describe the ``scenario'' for this case (as a side note, we could also say we look at ``normal'' databases)
+  \item Use the metrics above to compare bare-metal vs. virtual: this is essentially the overhead we want to study
+  \item Disk
+  \begin{itemize}
+    \item Single (fat) VM
+    \begin{itemize}
+      \item Concurrency: from 1 to many parallel/concurrent I/O requests, using threads
+      \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
+    \end{itemize}
+    \item Multiple VMs
+    \begin{itemize}
+      \item Concurrency: from 1 to many parallel/concurrent I/O requests (equally distributed among VM)
+      \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
+    \end{itemize}
+  \end{itemize}
+  \item Network
+\end{itemize}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusion}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 
