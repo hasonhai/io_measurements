@@ -115,14 +115,23 @@ Still very abstract
 \section{Background and Related Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{itemize}
-  \item introduce some related works on the performance of virtualization: explaining packet delay under virtualization, works from Guillaume and Dino, 
+  \item introduce some related works on the performance of virtualization: explaining packet delay under virtualization, works from Guillaume and Dino,
   \item introduce some related works on measuring performance of data intensive application
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
+In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed application, the distributed system (like Hadoop with MapReduce framework) developers try to work around this by moving the execution/programs to the workers but not the data. By this method of task distribution, storage I/O (disk and memory) was fully utilised to get the most out of the processing system. In the mean time, memory and cache sharing was not developed well enough to provide fault tolerant to the distributed system. That is why the data intensive applications greatly depend on the hard drive performance.
+
+The trending now is moving to the cloud, where people can rent a part of the virtualized infrastructure to process there data. (introduce little about Iaas, PaaS, and SaaS).
+Trending in private cloud. All of these brings the virtualization technology on top of choices for flexiple platform. (I also don't know what i mean here). 
+
+When running Hadoop/ data intensive application in virtualized environment, the performance of the IO now is very important. Everything depend on disk IO. Temporary data was stored on disk. Data was read from disk. Results was written to this. But the number of study (on this) are counting with just fingers. (Then have to list these studies). In our study, we see that Virtual Machine can only reach {n}\% of what the disk can give, even in quiet period.
+
+Also need to talk about network I/O (because we have it in the later part, make it removable, so if we do not have the result for network test, we can omit it easily)
+
 There is a common belief that virtualization
 We wonder if it is really true. And if it is bad, how bad it is? Is there any methodology that can help us to gain more performance with virtualization? In this report we present our study on the performance of I/O operation in virtualized environment. We make the experiments with the three layers: bare-metal (or the performance of host), guest operating system, and application.
-When we can measure the overhead of the virtualization, we can make better decision on 
+When we can measure the overhead of the virtualization, we can make better decision on
 \begin{itemize}
   \item \textit{What we do?}
   \begin{itemize}
