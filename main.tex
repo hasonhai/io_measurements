@@ -124,7 +124,7 @@ Still very abstract
 In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the distributed system (like Hadoop with MapReduce framework) developers try to work around this by moving the execution/programs to the workers but not the data. By this method of task distribution, storage I/O (disk and memory) was fully utilised to get the most out of the processing system. In the mean time, memory and cache sharing was not developed well enough to provide fault tolerant to the distributed system. That is why the data intensive applications greatly depend on the hard drive performance. One of the example is Spark, when they leverage memory complementing to the disk, we can see several fold of improvement in performance of the system.
 
 The trending now is moving to the cloud, where people can rent a part of the virtualized infrastructure to process their data.
-\begin{itemize} 
+\begin{itemize}
  \item introduce little about Iaas, PaaS, and SaaS
  \item Trending in private cloud and hybrid cloud
 \end{itemize}
@@ -201,6 +201,7 @@ Thus, each tenant has its own IP subnet, and exchange traffic between each other
 The storage backend for KVM is LVM. On each hypervisor, a volume group consisting of seven 1TB disks is used by Nova to dynamically create logical volumes for the ephemeral disks of KVM instances.
 
 \subsection{The measurement methodology}
+\noteby{sh}{I think the itemize below is suited more to a plan than a report. Currently I'm only able to realize the first, and perhaps the third item. The second and forth ones should be included in other report}
 \begin{itemize}
   \item A software framework to perform repeatable experiments
   \item A way to collect ``logs'' and analyze them
@@ -210,6 +211,8 @@ The storage backend for KVM is LVM. On each hypervisor, a volume group consistin
     \item Applications we consider: Hadoop, Spark, NoDB
   \end{itemize}
 \end{itemize}
+
+For the measurement, we relied on Flexible I/O (FIO), an application that was used to benchmark storage IO performance.
 
 \subsection{The performance/overheads metrics}
 \noteby{pm}{Should we consider over subscription as an important parameter??????}
