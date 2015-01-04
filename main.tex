@@ -2,6 +2,7 @@
 
 \usepackage[color=yellow,obeyFinal]{todonotes}
 \usepackage{graphicx}
+\graphicspath{ {figures/} }
 \usepackage{epstopdf}
 \usepackage{float}
 \usepackage{varioref}
@@ -121,22 +122,21 @@ Still very abstract
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
 
-In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the distributed system (like Hadoop with MapReduce framework) developers try to work around this by moving the execution/programs to the workers but not the data. By this method of task distribution, storage I/O (disk and memory) was fully utilised to get the most out of the processing system. In the mean time, memory and cache sharing was not developed well enough to provide fault tolerant to the distributed system. That is why the data intensive applications greatly depend on the hard drive performance. One of the example is Spark, when they leverage memory complementing to the disk, we can see several fold of improvement in performance of the system.
+In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the distributed system developers try to work around this by moving the execution/programs to the workers but not the data (like Hadoop with MapReduce framework). By such way of task distribution, storage I/O (disk and memory) was fully utilised to get the most out of the data processing system. In the mean time, memory and cache sharing was not developed well enough to provide fault tolerant to the distributed system. That is why the data intensive applications greatly depend on the hard drive performance. One of the example is Spark, when they leverage memory to use together with the disk, Spark sees the performance improvement up to hundreds times. That give us the reasons to focus on performance of storage I/O.
 
-The trending now is moving to the cloud, where people can rent a part of the virtualized infrastructure to process their data.
+In addition, the trending now is moving to the cloud, where people can rent a part of the virtualized infrastructure to process their data.
 \begin{itemize}
  \item introduce little about Iaas, PaaS, and SaaS
  \item Trending in private cloud and hybrid cloud
 \end{itemize}
-All of these brings the virtualization technology on top of choices for flexiple platform. (I also don't know what i mean here).
+All of these brings the virtualization technology on top of choices to deploy data intensive application.
 
 When running Hadoop/data intensive application in virtualized environment, the performance of the IO now is very important. Everything depend on disk IO. Data was read from disk, intermediate data was stored on disk, and results was written to disk. But the number of study (on this) are counting with just fingers. (Then have to list these studies). In our study, we see that Virtual Machine can only reach {n}\% of what the disk can give, even in quiet period.
 
 \noteby {sh} {Also need to talk about network I/O (because we have it in the later part, make it removable, so if we do not have the result for network test, we can omit it easily)}
 
 There is a common belief that virtualization
-We wonder if it is really true. And if it is bad, how bad it is? Is there any methodology that can help us to gain more performance with virtualization? In this report we present our study on the performance of I/O operation in virtualized environment. We make the experiments with the three layers: bare-metal (or the performance of host), guest operating system, and application.
-When we can measure the overhead of the virtualization, we can make better decision on
+We wonder if it is really true. And if it is bad, how bad it is? Is there any methodology that can help us to gain more performance with virtualization? In this report we present our study on the performance of I/O operation in virtualized environment. We make the experiments with the three layers: bare-metal (or the performance of host), guest operating system (or the performance of the VM), and application.
 
 \begin{itemize}
   \item \textit{What we do?}
@@ -212,29 +212,77 @@ The storage backend for KVM is LVM. On each hypervisor, a volume group consistin
   \end{itemize}
 \end{itemize}
 
-For the measurement, we relied on Flexible I/O (FIO), an application that was used to benchmark storage IO performance.
+\subsubsection{Tools}
+For the storage access measurement, we relied on Flexible I/O (FIO), an application that was used to benchmark storage IO performance. For disk bandwidth test, we use Fio. Fio is short for Flexible IO, a versatile IO workload generator. It was written to benchmark or verify changes to the Linux IO subsystem by Linux developers. Fio is flexible enough to allow detailed workload setups, and it contains the necessary reporting to make sense of the data at completion. Fio is widely used as an industry standard benchmark, stress testing tool, and for IO verification purposes. Fio isn't tied to any OS. It works on any platform from Windows to HP-UX to Android. There are also native IO engines on Linux, Windows, Solaris, etc. This is a key feature to make the measurement repeatable across platforms.
+Fio supports three different types of output formats. The “classic” output is the default which dumps workload statistics at the end of the workload. There's also support for a CSV format called Terse, though that's slowly diminishing in favor of a JSON-based output format. The latter is far more flexible and has the advantage of being simple to parse for people and computers. However, only later version of Fio support JSON output. In this report, we use the Terse format at the output.
 
-\subsection{The performance/overheads metrics}
-\noteby{pm}{Should we consider over subscription as an important parameter??????}
+\subsubsection{Scenarios and Experiment Design}
+
+In this experiments, we have three simple scenarios: Bare-metal, single VM with multiple threads, and multiple VMs with a single thread for each VM. We take the bare-metal test as a baseline to make the comparison with other scenarios to see the overhead of virtualization on the storage accessing. The singe VM with multiple thread is a scenario in which we only use one VM, but we have many threads competing to access the disk. This scenario is only different to the bare-metal one an added layer of virtualization. The last scenario enable us to see the different when the system interleave between VMs and when the VM interleave between threads. In this last one, we have only one thread in each VM, but we enable threads inside VMs at the same time and concurrently access the same storage resource.
+
+\noteby{sh}{Insert a figure here}
+
+During our measurement, we saw that the bandwidth of random read/write and sequential read/write is very different. To keep the same setting across the test and control the time for each test, we have to consider carefully the size of transfered data, number of parallel threads, number of VMs on one host. If the size is too small, the job finish too quickly, we cannot see the stable bandwidth of sequential read/write. If the data volume is too big, the random read/write test is take too long to finish. The number of parallel threads also affect a lot on the bandwith (as explained in the result assessment section). We have 5 different servers which have same specs. We do the same test on 5 servers to have a referrent for a good result. We check whether our result is usable by examine at the same time the result from 5 servers. If the result on one server is different from the others, we can conclude that our data were affected too much by other users or processes. On each server, we run same number of Virtual Machines. We run Fio on the physical host with different number of Fio threads (from 1 to 4 concurrent threads). Then with the same configuration, we run it from inside the VMs. We also make the comparison with the case that each VM has only one thread but we increase the number of concurrent running VMs on the same host. We also use identical Operating Systems and identical Os setting across platforms to make sure that the measurement result is reliable.
+
+Our configuration file for Fio has this sample structure:
+\begin{lstlisting}
+  ; sample setting of one thread
+  [sequential-read]
+  rw=read
+  size=512mb
+  directory=/home/cloud-user/fiodata
+  ioengine=libaio
+  direct=1
+  iodepth=16
+\end{lstlisting}
+
+Where:
 \begin{itemize}
-  \item Statistical methodology
-  \item Metrics:
+  \item \textbf{rw} defines the kind of disk access pattern: \textit{read} (sequential reads), \textit{write} (sequential writes), \textit{randread} (random reads), or \textit{randwrite} (random writes). We specially focus on these 4 different access patterns. In reality, HDFS only have sequential read and sequential write. But in case of the physical host, it may see the pattern as random read or random write because of the inter-switching between VMs on the same host or between threads on the same server.
+  \item \textbf{size} is the total size of file io for this job. Fio will run until this many bytes has been transferred. We choose the total transfer volume to be 512 MBs. This is long enough to... bla bla bla. The data will be divided to threads equally between parallel threads:
   \begin{itemize}
-    \item Network
-    \begin{itemize}
-      \item Throughput
-      \item Latency
-      \item Jain Fairness index (in case of concurrent access patterns)
-      \item CPU vs. network utilization
-    \end{itemize}
-    \item Disk
-    \begin{itemize}
-      \item Throughput
-      \item Latency
-      \item Jain Fairness index (in case of concurrent access patterns)
-      \item CPU vs. disk utilization
-    \end{itemize}
+    \item 1 thread: transfers entire 512 MBs
+    \item 2 threads: each thread transfer 256 MBs
+    \item 3 threads: each thread transfer 170 MBs
+    \item 4 threads: each thread transfer 128 MBs
   \end{itemize}
+  \item \textbf{direct I/O} uses the normal filesystem access, but disables buffering and locking operations
+  \item \textbf{iodepth} defines the I/O depth of the system. This defines how many io units to keep in flight against the file. The default is 1 for each file defined in this job, can be overridden with a larger value for higher concurrency. We use I/O depth of 1, 16 and 32. Default setting in some of the Linux distribution set I/O depth to even 256 or 512.
+  \item \textbf{ioengine} is libaio which indicates the application to use kernel asynchronous I/O subsystem. AIO (Asynchronous Linux IO) help to overlaps processing with I/O Operations. Application can submit (batch) IO without waiting for completion. This benefits physical IO in particular when prefetching data. Besides, It allows to accumulate read or write requests so that the IO subsystem can optimize performance by grouping or reordering the IO request in favor of sequential access and large request. It helps to separate calls for submission and completion indication and pipelines operations to improve throughput. It also helps to improved utilization of CPU and devices.
+\end{itemize}
+\subsection{The performance/overheads metrics}
+%\noteby{pm}{Should we consider over subscription as an important parameter??????}
+%\begin{itemize}
+%  \item Statistical methodology
+%  \item Metrics:
+%  \begin{itemize}
+%    \item Network
+%    \begin{itemize}
+%      \item Throughput
+%      \item Latency
+%      \item Jain Fairness index (in case of concurrent access patterns)
+%      \item CPU vs. network utilization
+%    \end{itemize}
+%    \item Disk
+%    \begin{itemize}
+%      \item Throughput
+%      \item Latency
+%      \item Jain Fairness index (in case of concurrent access patterns)
+%      \item CPU vs. disk utilization
+%    \end{itemize}
+%  \end{itemize}
+%\end{itemize}
+
+\subsubsection{Network}
+  \noteby{sh}{I ignored the network part}
+\subsubsection{Storage}
+In order to understand the overhead of virtualization in term of storage access, we have selected \textit{throughput}, \textit{latency}, \textit{IOPS} (number of I/O requests per second), \textit{Jain Fairness Index}, and \textit{CPU vs. disk utilisation}.
+\begin{itemize}
+  \item Throughput:
+  \item Latency:
+  \item IOPS:
+  \item Jain Fairness Index:
+  \item CPU vs disk utilisation:
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -250,26 +298,27 @@ During these measurements all VMs were using logical volumes created on the same
 \subsection{Single physical host}
 \noteby{pm}{what does exactly mean ``fat''? should we make it with capacity equal to the sum of the capacity of multiple VMs?}
 \noteby{dv}{We should take into account, for the measurements that include interference, which CPU Package the interfering vm is placed in}
-\begin{itemize}
-  \item Describe the ``scenario'' for this case (as a side note, we could also say we look at ``normal'' databases)
-  \item Use the metrics above to compare bare-metal vs. virtual: this is essentially the overhead we want to study
-  \item Disk
-  \begin{itemize}
-    \item Single (fat) VM
-    \begin{itemize}
-      \item Concurrency: from 1 to many parallel/concurrent I/O requests, using threads
-      \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
-    \end{itemize}
-    \item Multiple VMs
-    \begin{itemize}
-      \item Concurrency: from 1 to many parallel/concurrent I/O requests (equally distributed among VM)
-      \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
-    \end{itemize}
-  \end{itemize}
-  \item Network
-\end{itemize}
+%\begin{itemize}
+%  \item Describe the ``scenario'' for this case (as a side note, we could also say we look at ``normal'' databases)
+%  \item Use the metrics above to compare bare-metal vs. virtual: this is essentially the overhead we want to study
+%  \item Disk
+%  \begin{itemize}
+%    \item Single (fat) VM
+%    \begin{itemize}
+%      \item Concurrency: from 1 to many parallel/concurrent I/O requests, using threads
+%      \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
+%    \end{itemize}
+%    \item Multiple VMs
+%    \begin{itemize}
+%      \item Concurrency: from 1 to many parallel/concurrent I/O requests (equally distributed among VM)
+%      \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
+%    \end{itemize}
+%  \end{itemize}
+%  \item Network
+%\end{itemize}
 
 
+%\includegraphics[scale=0.65]{throughput}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
