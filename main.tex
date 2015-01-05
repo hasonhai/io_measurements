@@ -2,7 +2,7 @@
 
 \usepackage[color=yellow,obeyFinal]{todonotes}
 \usepackage{graphicx}
-\graphicspath{ {figures/} }
+\graphicspath{ {notebook/} }
 \usepackage{epstopdf}
 \usepackage{float}
 \usepackage{varioref}
@@ -318,19 +318,36 @@ Where:
   \item \textbf{ioengine} is libaio which indicates the application to use kernel asynchronous I/O subsystem. AIO (Asynchronous Linux IO) help to overlaps processing with I/O Operations. Application can submit (batch) IO without waiting for completion. This benefits physical IO in particular when prefetching data. Besides, It allows to accumulate read or write requests so that the IO subsystem can optimize performance by grouping or reordering the IO request in favor of sequential access and large request. It helps to separate calls for submission and completion indication and pipelines operations to improve throughput. It also helps to improved utilization of CPU and devices.
 \end{itemize}
 
-\subsubsection{Throughput}
-%\includegraphics[scale=1]{throughput}
+\subsubsection{throughput}
+\begin{figure*}[t]
+  \includegraphics[scale=0.5]{throughput}
+  \caption{\textit{Aggregated throughput}}
+  \label{fig:throughput}
+\end{figure*}
 
-%\includegraphics[scale=1]{nml_throughput}
+\begin{figure*}[t]
+  \includegraphics[scale=0.5]{nml_throughput}
+  \caption{\textit{Aggregated throughput after normalization}}
+  \label{fig:nml_throughput}
+\end{figure*}
 
 \subsubsection{Jain Fairness Index}
-%\includegraphics[scale=1]{JFI}
+
+\begin{figure*}[t]
+  \includegraphics[scale=0.5]{JFI}
+  \caption{\textit{Jain Fairness Index of the three scenarios}}
+  \label{fig:jfi}
+\end{figure*}
 
 Jain Fairness Index (JFI) has a range from 0 to 1 which indicates the level of fairness between concurrent threads. If the threads receive equal partition of bandwidth, we would achieve index of 1. If only k of n flows receive equal bandwidth (and others get none), index is k/n. In the worst case, JFI has the index of 0. We plot some figures of JFI for the three scenarios with confident interval of 95\%. The figures show that threads have very equal throughput except the case of Random Read and Random Write. We notice the reader that the figures show value of JFI from 0.6 to 1.1 for a clear view on the JFI of the system. We observe from the data that in Random Read and Random Write test, JFI is low because one of thread receives very high throughput but others receive low (need to verify with different system and different test) 
 
 \subsubsection{CPU vs. Disk utilization}
 
-%\includegraphics[scale=1]{CPUutilization}
+\begin{figure*}[t]
+  \includegraphics[scale=0.5]{CPUutilisation}
+  \caption{\textit{CPU utilisation}}
+  \label{fig:CPUutilisation}
+\end{figure*}
 
 The figures above represent the aggregated time for all threads to finish and the aggregated actual time that the thread are using the CPU. Because the amount of transfered data was multiplied proportional to the number of threads/VMs joining the test, so we cannot see clearly the overhead between the three scenarios. The distance between the solid line and the dash line represent the amout of useless time that the thread has to wait to finish its reading/writing. With this idea in mind, in later tests, we will use the same amount of transfered data to best present the overhead in terms of CPU utilization and CPU waiting time. The idea to use fixed data size is to see the increasing overhead when parallelism level increases.
 
@@ -340,7 +357,11 @@ In bare-metal environment, the common thought is that sequential write is always
 
 The waiting time is increasing when there are more threads accessing disk in parallel. However, because the transfer volume is increase gradually proportional to the number of parallel threads, we can not see clearly the overhead when the number of concurrent threads increases. Later experiments should fix this and draw conclusion on the behaviors of the system when parallelism is increase. These figure also lack of the disk utilisation. When disk utilisation is the bottleneck, the thread running time and CPU spending time will also increase. In later experiment, we will extract also the disk utilisation to see how it affect on CPU spending time.
 
-%\includegraphics[scale=1]{nml_CPUutilization}
+\begin{figure*}[t]
+  \includegraphics[scale=0.5]{nml_CPUutilisation}
+  \caption{\textit{CPU utilisation after normalisation}}
+  \label{fig:nml_CPUutilisation}
+\end{figure*}
 
 To illustrate the overhead in CPU spending time and Thread Running Time incurred by the virtualization, we also plot the normalization of the CPU Spending Time and Thread Running Time figure using bare-metal data as baseline for comparison. The figures show that for the same amount of transfered data, VMs spend double the time using the CPU. They also spend more time waiting for CPU slot, about 2 to 6 times in comparing to the bare-metal. One of the reason may also due to the bottleneck at the hard disk. This one can be verified by comparing the disk utilisation of the bare-metal and the virtualized scenarios.
 
