@@ -200,11 +200,13 @@ Still very abstract
     \begin{itemize}
       \item Concurrency: from 1 to many parallel/concurrent I/O requests, using threads
       \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
+      \item Single vs. multiple underlying disks
     \end{itemize}
     \item Multiple VMs
     \begin{itemize}
       \item Concurrency: from 1 to many parallel/concurrent I/O requests (equally distributed among VM)
       \item Interference: e.g. have a disturbing VM that uses a lot of CPU. Note that this makes much more sense if the host is ``oversubscribed''
+      \item Single vs. multiple underlying disks
     \end{itemize}
   \end{itemize}
   \item Network
