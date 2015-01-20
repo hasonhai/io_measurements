@@ -4058,8 +4058,8 @@ YII=
 <li>case 1 VM only: the bandwidth is normal</li>
 <li>case 2 VMs: because both of them on the same disk, so the bandwidth is just increase a bit thanks to parallel processes.</li>
 <li>case 4 VMs: VM 1 and 2 on one disk, VM 3 and 4 on another disk, so bandwidth now is double. But because number of VM is even on each disk so we have Jain Fareness Index still high and throughput of 4 of them similar.</li>
-<li>case 8 VMs: 5 VMs on 1 disk, and 3 VMs on another so the throughput still higher than bare metal but it started to show the affection competence processes.</li>
-<li>case 16 VMs: 5 VMs on 1 disk, and 11 VMs on another, throughput now descreases a lot due to high level concurrency but still higher similar two bare-metal since the test ran on 2 disks at the same time. So Overhead of virtualized is not displayed.</li>
+<li>case 8 VMs: 5 VMs on 1 disk, and 3 VMs on another so the throughput still higher than bare metal but it started to show the affection of competent processes.</li>
+<li>case 16 VMs: 5 VMs on 1 disk, and 11 VMs on another, throughput now descreases a lot due to high level of concurrency but still similar to bare-metal since the test ran on 2 disks at the same time. So overhead of virtualization is not displayed.</li>
 </ul>
 <p>Currently, we have no way to control which disk an instance is executing on. When there are more and more VMs are active, the probability that two or more VMs are executing on different disks is higher. It will turn out that the result for disk stressed test is not correct any more when they are not competeing on the same disk.</p>
 <p>3) One other possible hypothesis is that the hypervisor scheduler is not fair (but we prefer more the second hypothesis), some of the VMs may receive more CPU slot and and finish quicker, then other VMs occupy the &quot;have-just-been&quot; empty slot and finish quickly after that. It create a series of wave of parallel processed happen during the test, which makes the aggregated throughput from this scenario uncomparable. If it is the case, we have no way but to modify the hypervisor&#39;s setting or changing the its internal execution.</p>
