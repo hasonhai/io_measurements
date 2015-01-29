@@ -1,0 +1,14 @@
+Hi,
+These scripts are not "so" automatic, we have to prepare a little at the begining in order to run the scripts.
+1. Create the VMs that we want to do the test, then get the floating IP of that VM and put it to a .lst file in testdir
+2. After having the VMs ready and the list of IP address in the file .lst, we can run the test now:
+ + mvmtestrun.sh: Multiple VMs with Single Process Test
+ + vm1coretest.sh: Single 1-core VM with Multiple Processes Test
+ + vm2coretest.sh: Single 2-core VM with Multiple Processes Test
+ + vm4coretest.sh: Single 4-core VM with Multiple Processes Test
+ + vm8coretest.sh: Single 8-core VM with Multiple Processes Test
+ + vm16coretest.sh: Single 16-core VM with Multiple Processes Test
+ + bigfoot16procstest.sh: Single physical host with multiple processes test
+The main modifition in this step is the IP addresses of the machine that we will run FIO on.  
+3. After the test run, you should have list of directory which contain the FIO output with terse format
+4. You can use the script inside directory ReadFIO to read the input and save them in a csv file
