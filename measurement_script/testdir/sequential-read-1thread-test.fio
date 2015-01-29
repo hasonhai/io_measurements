@@ -1,0 +1,10 @@
+; sequential read of 4gb of data
+
+[sequentialread]
+rw=read
+size=4g
+directory=/home/ubuntu/fiodata
+ioengine=libaio
+direct=1
+iodepth=32 
+numjobs=1
