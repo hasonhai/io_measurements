@@ -1,0 +1,42 @@
+sda:
+ - RAID 0 virtual disk based on the physical disk 0
+ - adaptive read-ahead
+ - write back cache
+ - strip element size: 64KB
+ - disk cache disabled (default)
+ - simple partition (no LVM), uses 512GB
+
+sdb: No cache
+ - RAID 0 virtual disk based on the physical disk 0
+ - no read-ahead
+ - write through cache
+ - strip element size: 64KB
+ - disk cache disabled (default)
+ - not partitioned
+
+sdc: like sda, but biggest strip element size
+ - RAID 0 virtual disk based on the physical disk 0
+ - adaptive read-ahead
+ - write back cache
+ - strip element size: 1MB
+ - disk cache disabled (default)
+ - not partitioned
+
+sdd: like sda, to do measurements with concurrent accesses
+ - RAID 0 virtual disk based on the physical disk 0
+ - adaptive read-ahead
+ - write back cache
+ - strip element size: 1MB
+ - disk cache disabled (default)
+ - not partitioned
+
+sde: like sda, but with disk cache enabled
+ - RAID 0 virtual disk based on the physical disk 0
+ - adaptive read-ahead
+ - write back cache
+ - strip element size: 1MB
+ - disk cache disabled (default)
+ - not partitioned
+
+sdf, sdg, sdh, sdi, sdj:
+ - No RAID
