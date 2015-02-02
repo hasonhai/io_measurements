@@ -1,6 +1,7 @@
 #! /bin/bash
 # For installing fio on Ubuntu
 sudo apt-get update
+sudo apt-get install make -y
 wget https://github.com/axboe/fio/archive/fio-2.2.4.tar.gz
 tar -xzvf fio-2.2.4.tar.gz
 sudo apt-get install zlib1g-dev -y

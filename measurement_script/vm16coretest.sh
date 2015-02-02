@@ -1,5 +1,5 @@
 #!/bin/bash
-ACCESSKEY="testdir/hasonhai.cer"
+ACCESSKEY="testdir/bf7-devstack.pem"
 USERNAME="ubuntu"
 VMADD="testdir/vm16core.lst"
 
