@@ -16,7 +16,7 @@ export OS_AUTH_URL=http://192.168.46.16:5000/v2.0
 
 # With the addition of Keystone we have standardized on the term **tenant**
 # as the entity that owns the resources.
-export OS_TENANT_ID=61568b896dc046fabbadef3e77a965e4
+export OS_TENANT_ID=64b244b75d604b58a78d39dbe3f32ac5
 export OS_TENANT_NAME="osmef"
 
 # In addition to the owning entity (tenant), OpenStack stores the entity
