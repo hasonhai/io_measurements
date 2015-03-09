@@ -1,5 +1,5 @@
 #!/bin/bash
-ACCESSKEY="testdir/bf7-devstack.pem"
+ACCESSKEY="/home/sonhai/cloudbf12.pem"
 USERNAME="ubuntu"
 ONEVM="testdir/1vms.lst"
 TWOVM="testdir/2vms.lst"

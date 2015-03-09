@@ -1,5 +1,5 @@
 #!/bin/bash
-ACCESSKEY="testdir/bf7-baremetal.pem"
+ACCESSKEY="/home/sonhai/cloudbf12.pem"
 USERNAME="sonhai"
 BFADD="testdir/Bigfoot.lst"
 
