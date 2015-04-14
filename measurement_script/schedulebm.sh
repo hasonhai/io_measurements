@@ -1,17 +1,28 @@
 #!/bin/bash
-appdir="/home/sonhai/io_measurements/measurement_script/"
+appdir="/home/sonhai/io_measurements/measurement_script"
 
-if [ "$1" = "" ]; then
-    oldtestdir="/mnt/sda/fiodata"
-else oldtestdir="$1"
-fi
-
-for drive in sda sdf sdg sdh sdi sdj;
+for test in 1 2 4 8 16;
 do
-    newtestdir="/mnt/${drive}/fiodata"
-    echo "Doing test at drive $drive"
-    sed -i "s|${oldtestdir}|${newtestdir}|g" $appdir/testdir/*.fio 
-    $appdir/bigfoot16procstest.sh
-    mv $appdir/BigfootSeq* $appdir/procs16_${drive}_lvm/
-    oldtestdir="$newtestdir"
+    # Disable cores
+    for cpuNo in $( seq $test 31 );
+    do
+        # disable core
+        echo disable core number $cpuNo
+        echo 0 | sudo tee /sys/devices/system/cpu/cpu${cpuNo}/online
+    done
+    
+    # Run test
+    NoCore="$test"
+    $appdir/bigfoot16procstest.sh $NoCore
+    padtowidth=2
+    NoCore=$( printf "%0*d" $padtowidth $NoCore )
+    mv $appdir/Bigfoot${NoCore}CoreSeq* $appdir/bigfoot12_cache2/
+    
+    # Enable cores
+    for cpuNo in $( seq $test 31 );
+    do
+        # enable core
+        echo enable core number $cpuNo
+        echo 1 | sudo tee /sys/devices/system/cpu/cpu${cpuNo}/online
+    done    
 done
