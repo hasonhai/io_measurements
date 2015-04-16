@@ -4,7 +4,7 @@ CURDIR=$( pwd )
 RESULTDIR="$1"
 cd $RESULTDIR
 # Physical Machine
-for PLATFORM in "Bigfoot" "OneVMOneCore" "OneVMTwoCore" "OneVMFourCore" "OneVMEightCore" "OneVM16Core" "TwoVMOneCore" "FourVMOneCore" "EightVMOneCore" "SixteenVMOneCore"; do
+for PLATFORM in "Bigfoot32Core" "Bigfoot16Core" "Bigfoot08Core" "Bigfoot04Core" "Bigfoot02Core" "Bigfoot01Core" "OneVMOneCore" "OneVMTwoCore" "OneVMFourCore" "OneVMEightCore" "OneVM16Core" "TwoVMOneCore" "FourVMOneCore" "EightVMOneCore" "SixteenVMOneCore"; do
 #    echo "================$PLATFORM-Result=========================="
 for TESTTYPE in "SeqRead" "SeqWrite"; do
 for NUMTHREAD in 1 2 4 8 16; do
@@ -29,7 +29,12 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         FourVMOneCore) P="04VM01C";;
         EightVMOneCore) P="08VM01C";;
         SixteenVMOneCore) P="16VM01C";;
-        Bigfoot) P="BF";;
+        Bigfoot32Core) P="BF32C";;
+        Bigfoot16Core) P="BF16C";;
+        Bigfoot08Core) P="BF08C";;
+        Bigfoot04Core) P="BF04C";;
+        Bigfoot02Core) P="BF02C";;
+        Bigfoot01Core) P="BF01C";;
         *) P="Unknown";;
     esac
     
@@ -39,7 +44,7 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         *) P="Unknown";;
     esac
 
-    if [ "$PLATFORM" = "Bigfoot" -o "$PLATFORM" = "OneVMOneCore" -o "$PLATFORM" = "OneVMTwoCore" -o "$PLATFORM" = "OneVMFourCore" -o "$PLATFORM" = "OneVMEightCore" -o "$PLATFORM" = "OneVM16Core" ]; then
+    if [ "$PLATFORM" = "Bigfoot32Core" -o "$PLATFORM" = "Bigfoot16Core" -o "$PLATFORM" = "Bigfoot08Core" -o "$PLATFORM" = "Bigfoot04Core" -o "$PLATFORM" = "Bigfoot02Core" -o "$PLATFORM" = "Bigfoot01Core" -o "$PLATFORM" = "OneVMOneCore" -o "$PLATFORM" = "OneVMTwoCore" -o "$PLATFORM" = "OneVMFourCore" -o "$PLATFORM" = "OneVMEightCore" -o "$PLATFORM" = "OneVM16Core" ]; then
         if [ "$NUMTHREAD" = "1" ]; then
             bw="$BANDWIDTH NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$NUMTHREAD" = "2" ]; then
