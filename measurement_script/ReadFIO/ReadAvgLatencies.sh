@@ -13,10 +13,10 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         cd $RESULTDIR/${PLATFORM}${TESTTYPE}${NUMTHREAD}thread${TESTNO}
         # echo ${PLATFORM}${TESTTYPE}${NUMTHREAD}thread${TESTNO}
         if [ "$TESTTYPE" = "SeqRead" ]; then
-            IOPS=$( cat *.diskout | grep ';sequentialread;' | cut -d';' -f8 --output-delimiter=' ' )
+            AVG_LAT=$( cat *.diskout | grep ';sequentialread;' | cut -d';' -f40 --output-delimiter=' ' )
         fi
         if [ "$TESTTYPE" = "SeqWrite" ]; then
-            IOPS=$( cat *.diskout | grep ';sequentialwrite;' | cut -d';' -f49 --output-delimiter=' ' )
+            AVG_LAT=$( cat *.diskout | grep ';sequentialwrite;' | cut -d';' -f81 --output-delimiter=' ' )
         fi
 
     case $PLATFORM in
@@ -41,25 +41,25 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
 
     if [ "$PLATFORM" = "Bigfoot32Core" -o "$PLATFORM" = "OneVMOneCore" -o "$PLATFORM" = "OneVMTwoCore" -o "$PLATFORM" = "OneVMFourCore" -o "$PLATFORM" = "OneVMEightCore" -o "$PLATFORM" = "OneVM16Core" ]; then
         if [ "$NUMTHREAD" = "1" ]; then
-            iops_fmt="$IOPS NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
+            lat_fmt="$AVG_LAT NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$NUMTHREAD" = "2" ]; then
-            iops_fmt="$IOPS NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
+            lat_fmt="$AVG_LAT NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$NUMTHREAD" = "4" ]; then
-            iops_fmt="$IOPS NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
+            lat_fmt="$AVG_LAT NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$NUMTHREAD" = "8" ]; then
-            iops_fmt="$IOPS NaN NaN NaN NaN NaN NaN NaN NaN"
+            lat_fmt="$AVG_LAT NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$NUMTHREAD" = "16" ]; then
-            iops_fmt="$IOPS"
+            lat_fmt="$AVG_LAT"
         fi
     else
         if [ "$PLATFORM" = "TwoVMOneCore" ]; then
-            iops_fmt="$IOPS NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
+            lat_fmt="$AVG_LAT NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$PLATFORM" = "FourVMOneCore" ]; then
-            iops_fmt="$IOPS NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
+            lat_fmt="$AVG_LAT NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$PLATFORM" = "EightVMOneCore" ]; then
-            iops_fmt="$IOPS NaN NaN NaN NaN NaN NaN NaN NaN"
+            lat_fmt="$AVG_LAT NaN NaN NaN NaN NaN NaN NaN NaN"
         elif [ "$PLATFORM" = "SixteenVMOneCore" ]; then
-            iops_fmt="$IOPS"
+            lat_fmt="$AVG_LAT"
         fi
     fi      
     cd $RESULTDIR
@@ -74,7 +74,7 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         *) P="Unknown";;
     esac
 
-    echo ${AP}${P}TH${TH}T${TESTNO} $iops_fmt
+    echo ${AP}${P}TH${TH}T${TESTNO} $lat_fmt
     fi
 done
 done
