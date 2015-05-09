@@ -64,8 +64,7 @@
 
 % paper title
 % can use linebreaks \\ within to get better formatting as desired
-% \title{Automatic MapReduce ROLLUP}
-\title{This is our title}
+\title{The Impacts of Virtualization\\ on Big Data Application's Workload}
 
 
 % author names and affiliations
@@ -103,21 +102,50 @@ Still very abstract
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{itemize}
-  \item brief introduction virtualization (2-3 sentences)
-  \item brief introduction data intensive processing framework (2-3 sentences)
-  \item one sentence for problem statement
-  \item two sentences for related work
-  \item two sentences for methodology
-  \item two sentences for results and assessment
-  \item one sentences for conclusion of introduction
+
+The adoption of virtualization brings many benefits to the technology community. It gives ways to high flexiblity, high availability and high utilisation of the hardware. But it also brings the disadvantages by adding complexity to the management and overhead to the performance. On the other hand, in 2014, IDG [1] published a study in which they found that more than 70\% of enterprise and SMB organizations have either deployed or are planning to deploy big data-related projects and programs [2]. Bringing big data application to the cloud is surely unavoidable in the future. We are seeing more and more Hadoop [3] or Spark [4] cluster operating on the cloud. The mariage of big data application and virtualization is already happened and continued to grow more and more greatly than ever. Howerver, when mentioning about the performance of Big Data application on the cloud, people just walk away with the common thought that virtualization bringing bad performance to big data application because of the added virtualization layer. Yet we wonder, if it is really bad, how bad it is? to the most of our knowlegde, there is no or very few works that directly studies the impacts of virtualization on the big data application performance.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/cluster_snapshot.png}
+    \caption{\textit{An example snapshot of a running virutalized MapReduce cluster}}
+    \label{cluster_snapshot}
+\end{figure}
+
+Measuring the performance of a distributed application is hard, and it is even harder when that application is running on virtualized platform which involving layers and layers of different technologies. Yet the measurement is nescessary to have a proper undertanding on performance of Big Data applications in the virtualized environment. Figure 1 is a snapshot of a small MapReduce cluster operating in virtualized environment at a random time. There are 3 physical servers which host 7 Virtual Machines. These VMs were set-up as a Hadoop cluster and are running a Map Reduce job. To execute the job, the application initiates several parallel mappers and reducers inside each VM. Those threads are concurrently competing for the same resources at each physical host such as disk storage, memory, and CPU,... to perform their tasks. When looking at the whole picture, we see that the performance of the whole cluster is depended on the performance of every one of its building block: a physical host. To simplify the study, we select a physical host to be the foundation for the study and we model two basic and distinguished scenarios that can be seen on a physical host of a virtualized Hadoop cluster:
+\begin{itemize} 
+\item Single VM with multiple threads (SVM-MT): this scenario represents the case that the host has only one VM but this VM runs many mappers and reducers at the same time. This scenario is not rare to see because many administrators like to use fat VM for their cluster and the host can only host one fat VM. We consider 5 different flavors of VM for this scerenario.
+\item Multiple VMs with single thread (MVM-ST): this scenario represents the case that we have a small VM and this VM runs only one mapper or reducer at a time. But because this is a virtualized enviroment, those VMs do not know that they are competing for the same resources. This screnario is also not rare to see because the cloud administrator sharing same server for their different customers.
 \end{itemize}
+In reality, we have different mixes between the scenarios. However, we select those two since it focuses on different components of the same paltform. The SVM-MT scenario focuses on the guest OS scheduler since only it has to switch between active threads. The MVM-ST one focuses on the hypervisor scheduler since it has to switch between active VMs. Last but not least, the baremetal system is the baseline to make the comparision. In case of the bare-metal, many mappers or reducers running at the same time is a must. In this paper, we estabblish our focus only on the storage I/O performance since it was thought to be one of the main bottle necks of big data application [5]. More specific, we are especially interesting in the case that we have only one local hard drive on the server (why?). 
+
+We consider I/O throughput and I/O fairness as the metrics to compare the performance between bare-metal and virtualized platform. The throughput metric expresses how good the system feed data to the threads while fairness keep threads away from data starvation. If one mapper cannot read data, it becomes stragglers and highten End-Job Time of the job. We also consider CPU utilization and the number of context switching in the experiment in order to understand the throughput result that we got.
+
+%Even we looking at the application level. Measure the impact of virtualization on the big data technology. we still need a proper understanding on what happens without the application because the application is very complex. it's a large distributed system that hides a lot of details so whenever you see the result, the problem is that it's very hard to explain what happened if you only look from the perspective of Hadoop or Spark. That was the reason why we simplify the thing. Let try to somehow emulate  what is the traditional workload generated by application such as Hadoop MapReduce. The question was what happens when you have the virtualization layer that hide in the middle between your application and IO call. And that why we have the mesurement of baremetal with several different configuration of the hard drive setting and CPU setting. We show that more or less the performance did not change much. So bare metal is really stable. And then we have result that look at different flavors of CPU of virtual machine with different size. And also the number of concurrent threads. These are the useful foundation for understanding the next result that you will obtain by running some sample of map reduce application which have similar workload.
+
+%State what your goal are. You establish a measurement methodology where you explain your experimental setup, your tools, metrics, why they're important. And there you explain the statiscal perspective of experiments.
+%Then to validate your initial claim once the paper is done in the introduction (for example "we see that hadoop on virtualization is suck"). You ancitipate the result.
+
+
+%What you were hoping to find?
+We believe that the result from this work can help the virtualized data center engineers to have more detail on the big picture of big data framework on the cloud. This is the first part in a continuation research which study on the impact of virtualization on Data Intesive Analysis Platform (DIAP) in which there are two most popular representative: Hadoop and Spark. Hadoop and Spark can be network bounded, disk I/O bounded, or CPU bounded. In this paper, we focus on disk bounded.
+
+One part of our study repeats some previous studies which show that virtualization can only reach 80 - 90% of bare metal performance due to the overhead that the added virtualization layer brought up. However, that is for the case of one process accessing the storage. The discrepancy between VM flavors is start after concurency level increase to 4 threads/VM. We also see VM performance is better if we have high level of concurrency.  
+
+Before the study, our expectation was on conclusion of how bad the IO of data %present our results
+
+Performance of Big Data application is not only depended on storage I/O performance, it's also depended on network,  %talk about the limitation of this work, why it can be different when applying to explain performance of hadoop
+
+%to cite
+%[1] http://www.idgenterprise.com/report/big-data-2
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background and Related Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{itemize}
-  \item introduce some related works on the performance of virtualization: explaining packet delay under virtualization, works from Guillaume and Dino,
+  \item introduce some related works on the performance of virtualization: explaining packet delay under virtualization, works from Guillaume and Dino, work from IBM on performance of KVM, work from a guy discussing the relavant of IO schedulers to virtualization system.
   \item introduce some related works on measuring performance of data intensive application
+ \item then mention about the combined of both, what we are different from previous works, what are our interesting points.
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
@@ -131,7 +159,7 @@ In addition, the trending now is moving to the cloud, where people can rent a pa
 \end{itemize}
 All of these brings the virtualization technology on top of choices to deploy data intensive application.
 
-When running Hadoop/data intensive application in virtualized environment, the performance of the IO now is very important. Everything depend on disk IO. Data was read from disk, intermediate data was stored on disk, and results was written to disk. But the number of study (on this) are counting with just fingers. (Then have to list these studies). In our study, we see that Virtual Machine can only reach {n}\% of what the disk can give, even in quiet period.
+When running Hadoop/data intensive application in virtualized environment, the performance of the I/O now is very important. Everything depends on disk I/O. Data was read from disk, intermediate data was stored on disk, and results was written to disk. But the number of study (on this) are counting with just fingers. (Then have to list these studies). In our study, we see that Virtual Machine can only reach {n}\% of what the disk can give, even in quiet period.
 
 \noteby {sh} {Also need to talk about network I/O (because we have it in the later part, make it removable, so if we do not have the result for network test, we can omit it easily)}
 
