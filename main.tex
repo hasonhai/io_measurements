@@ -113,7 +113,7 @@ The adoption of virtualization brings many benefits to the technology community.
 \end{figure}
 
 Measuring the performance of a distributed application is hard, and it is even harder when that application is running on virtualized platform which involving layers and layers of different technologies. Yet the measurement is necessary to have a proper understanding on performance of Big Data applications in the virtualized environment. Figure 1 is an abstract snapshot of a small MapReduce cluster operating in virtualized environment at a random time. There are 3 physical servers which host 7 Virtual Machines. These VMs were set-up as a Hadoop cluster and are running a Map Reduce job. To execute the job, the application initiates several parallel mappers and reducers inside each VM. Those threads are concurrently competing for the same resources at each physical host such as disk storage, memory, and CPU,... to perform their tasks. When looking at the whole picture, we see that the performance of the whole cluster is depended on the performance of every one of its building block: a physical host. To simplify the study, we select a physical host to be the foundation for the study and we model two basic and distinguished scenarios that can be seen on a physical host of a virtualized Hadoop cluster:
-\begin{itemize} 
+\begin{itemize}
 \item Single VM with multiple threads (SVM-MT): this scenario (figure [?]) represents the case that the host has only one VM but this VM runs many mappers and reducers at the same time. This scenario is not rare to see because many administrators like to use fat VM for their cluster and the host can only host one fat VM. We consider 5 different flavors of VM for this scenario to see how the VM's size affects on the performance.
 \item Multiple VMs with single thread (MVM-ST): this scenario (figure [?]) represents the case that we have a small VM and this VM runs only one mapper or reducer at a time. But because this is a virtualized environment and hardware resources are sharing between different customers, so there are many small VMs running on the same host. Those VMs do not know that they are competing for the same resources. This scenario is also not rare to see because the cloud administrators often share same servers for their different customers. Sharing physical resources is one of the reason that virtualization is adopted widely.
 \end{itemize}
@@ -139,15 +139,22 @@ We believe that the result from this work can help the communities to have more 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
 
-In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the distributed system developers try to work around this by moving the execution/programs to the workers but not the data (like Hadoop with MapReduce framework). By such way of task distribution, storage I/O (disk and memory) was fully utilised to get the most out of the data processing system. In the mean time, memory and cache sharing was not developed well enough to provide fault tolerant to the distributed system. That is why the data intensive applications greatly depend on the hard drive performance. One of the example is Spark, when they leverage memory to use together with the disk, Spark sees the performance improvement up to hundreds times. That give us the reasons to focus on performance of storage I/O.
+In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the developers try to work around by moving the execution/programs to the workers but not the data (like Hadoop with MapReduce framework). By such way of task distributing, storage I/O (disk and memory) was fully utilised to get the most out of the data processing system. Hadoop reported 
+One of the example is Spark, when they leverage memory to use together with the disk, Spark reported the performance improvement up to severalfold. However, memory and cache sharing was not developed well enough to provide fault tolerant to the distributed system. That is why the data intensive applications greatly depend on the hard drive performance.
 
 In addition, the trending now is moving to the cloud, where people can rent a part of the virtualized infrastructure to process their data.
 All of these brings the virtualization technology on top of choices to deploy data intensive application.
 
-When running Hadoop/data intensive application in virtualized environment, the performance of the I/O now is very important. Everything depends on disk I/O. Data was read from disk, intermediate data was stored on disk, and results was written to disk. But the number of study (on this) are counting with just fingers. In our study, we see that Virtual Machine can only reach {n}\% of what the disk can give, even in quiet period.
+When running Hadoop/data intensive application in virtualized environment, the performance of the I/O now is very important. Everything depends on disk I/O. Data was read from disk, intermediate data was stored on disk, and results was written to disk. But the number of study (on this) are counting with just fingers.
 
 There is a common belief that virtualization
 We wonder if it is really true. And if it is bad, how bad it is? Is there any methodology that can help us to gain more performance with virtualization? In this report we present our study on the performance of I/O operation in virtualized environment. We make the experiments with the three layers: bare-metal (or the performance of host), guest operating system (or the performance of the VM), and application.
+
+
+
+% cite: Locality-Aware Reduce Task Scheduling for MapReduce - Mohammed Hammoud, CloudCom
+% cite: Purlieus: Locality-aware Resource Allocation for MapReduce in a Cloud - Balaji Balanisamy
+% cite: Locality-Aware Dynamic VM Reconfiguration on MapReduce Clouds - Jongse Park
 
 \begin{itemize}
   \item \textit{What we do?}
@@ -168,24 +175,6 @@ We wonder if it is really true. And if it is bad, how bad it is? Is there any me
 \section{The methodology}
 
 \subsection{The system under measurement}
-\begin{itemize}
-  \item Platform description
-  \begin{itemize}
-    \item Hardware
-    \begin{itemize}
-      \item Network architecture
-      \item Disk subsystem: RAID controller, ...
-    \end{itemize}
-    \item Software
-    \begin{itemize}
-      \item Hypervisor
-      \item OVS
-      \item Host file-system
-      \item LVM
-    \end{itemize}
-  \end{itemize}
-\end{itemize}
-\noteby{dv}{I'm skipping the host file-system description, since it does not matter in this context, measurements were done over plain LVM volumes}
 
 \subsubsection{Hardware}
 Our cluster uses a heterogeneous set of physical machines: we have two \textit{master} nodes running on a dual quad-core Xeon L5320 server clocked at 1.86GHz, with 16GB of RAM, two 1TB hardware RAID5 volumes, and two 1Gbps network interfaces; \textit{worker} nodes execute on six dual exa-core Xeon E5-2650L (with hyperthreading enabled) servers clocked at 1.8GHz, with 128GB of RAM, ten 1TB disks (configured as JBOD, Just a Bunch of Disks).
@@ -198,9 +187,17 @@ The hardware RAID provided by the server hardware has been disabled in favor of 
 \subsubsection{Software}
 
 \paragraph{Hypervisor}
-Each machine in the cluster runs the same Linux distribution, a Ubuntu 12.04 LTS, updated with the most recent patches. All energy saving settings in the BIOS are disabled, since they cause severe performance penalties. Bigfoot uses the KVM hypervisor, with \texttt{virtio} and \texttt{vhost\_net} acceleration modules enabled. Virtualization support in the CPUs is enabled (VMX) and KVM uses it automatically. The hypervisor is configured by Nova to use LVM for VM storage.
+Each machine in the cluster runs the same Linux distribution, a Ubuntu 14.04 LTS, updated with the most recent patches. All energy saving settings in the BIOS are disabled, since they cause severe performance penalties. Bigfoot uses the KVM hypervisor, with \texttt{virtio} and \texttt{vhost\_net} acceleration modules enabled. Virtualization support in the CPUs is enabled (VMX) and KVM uses it automatically. The hypervisor is configured by Nova to use LVM for VM storage.
 
-\noteby{dv}{Son Hai: describe the VM flavor and image used}
+\begin{tabular}{|l|c|c|c|c|c|}
+  \hline
+  % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
+  Resource & small & medium & large & xlarge & xxlarge \\
+  vCPU & 1 & 2 & 4 & 8 & 16 \\
+  Memory (GB)& 1 & 4 & 8 & 16 & 16 \\
+  Root disk (GB)& 40 & 40 & 40 & 40 & 40 \\
+  \hline
+\end{tabular}
 
 %\paragraph{OpenVSwitch (OVS)}
 %On the Bigfoot platform, the most common OpenStack setup has been implemented. The network component, \texttt{Neutron}, is configured to use the OpenVSwitch plugin to provide connectivity between VMs. OVS is a software switch implementation that materializes as a virtual switch spanning across multiple physical hosts. In our configuration, \texttt{Neutron} creates a single OVS switch for all VMs, on each Hypervisor, using VLAN tagging to separate traffic from different tenants.
@@ -224,25 +221,23 @@ The storage backend for KVM is LVM. On each hypervisor, a volume group consistin
 
 \subsection{The performance/overheads metrics}
 
-During these measurements all VMs were using logical volumes created on the same physical hard disk. Physical CPU cores are not reserved for each VM, but during measurements there was enough spare capacity available to guarantee that each VM had a single core (as configured by the VM flavor) available for its exclusive use.
+During these measurements all VMs were using logical volumes created on the same physical hard disk. Physical CPU cores are not reserved for each VM, but during measurements there was enough spare capacity available to guarantee that each VM had enough cores (as configured by the VM flavor) available for its exclusive use.
 
 \subsubsection{Tools}
 
-For disk bandwidth test, we use Fio. Fio is short for Flexible IO, a versatile IO workload generator. It was written to benchmark or verify changes to the Linux IO subsystem by Linux developers. Fio is flexible enough to allow detailed workload setups, and it contains the necessary reporting to make sense of the data at completion. Fio is widely used as an industry standard benchmark, stress testing tool, and for IO verification purposes. Fio isn't tied to any OS. It works on any platform from Windows to HP-UX to Android. There are also native IO engines on Linux, Windows, Solaris, etc. This is a key feature to help many kinds of measurement repeatable across platforms.
-
-Fio also supports three different types of output formats. The “classic” output is the default which dumps workload statistics at the end of the workload. There's also support for a CSV format called Terse, though that's slowly diminishing in favor of a JSON-based output format. The latter is far more flexible and has the advantage of being simple to parse for people and computers. However, JSON format only available in later version of FIO. We prefer the terse format since it's available to more versions of FIO. Especially, it is an advantage on some of the hosts where users are not able to upgrade FIO version.
+ We relies on FIO for disk measurement in this paper. FIO is short for Flexible I/O, a versatile I/O workload generator. It was written to benchmark or verify changes to the Linux IO subsystem by Linux developers. FIO is flexible enough to allow detailed workload setups, and it contains the necessary reporting to make sense of the data at completion. FIO is widely used as an industry standard benchmark, stress testing tool, and for I/O verification purposes. FIO isn't tied to any OS. It works on any platform from Windows to HP-UX to Android. There are also native IO engines on Linux, Windows, Solaris, etc. This is a key feature to allow many kinds of measurement repeatable across platforms. Besides, FIO supports three different types of output format: the default console output which dumps workload statistics at the end of the run, the file output with CSV format called Terse, and the JSON-based output file format which is far more flexible and has the advantage of being simple to parse for people and computers. However, JSON format only available in later version of FIO. We prefer the Terse format since it is available to more versions of FIO which can help us easily migrate our micro benchmark script to different platforms.
 
 \subsubsection{Scenarios and Experiment Design}
 
-We run FIO on the physical host with different number of FIO threads (from 1 to 16 concurrent threads). Then with the same configuration, we run it with on 5 different VM flavors (VM with one, two, four, eight, and sixteen cores). We also make the comparison with the case that each VM has only one thread but we use many concurrent active VMs on the same host to perform I/O operation. We use identical Operating Systems and identical OS' setting across platforms to make sure that the measurement result is reliable. The same fixed amount of data was used throughout the test. When there are many concurrent threads or concurrent VMs running in one test, we distribute the input data equally to all of them.
+We run FIO on the physical host with different number of FIO threads (from 1 to 16 concurrent threads). Then with the same configuration, we run it on 5 different VM flavors (VM with one, two, four, eight, and sixteen cores). We also make the comparison with the case that each VM has only one thread but we use many concurrent active VMs on the same host to perform I/O operation. We use identical Operating Systems and identical OS' setting across platforms to make sure that the measurement result is reliable. The same fixed amount of data was used throughout the test. When there are many concurrent threads or concurrent VMs running in one test, we distribute the input data equally to all of them.
 
-With the described scenarios above, we group our tests into three scenarios and name them:
+With the described scenarios above, we group our tests into three scenarios:
 \begin{itemize}
   \item \textbf{Bare-metal (BM)}: multiple threads concurrently read data from or write data to the disk. Data were read from or written to a directory placed on the same hard drive.
   \item \textbf{Single VM with multiple threads (SVM-MT)}: 5 different VM flavors (each flavor has different number of core) ran the same test with the involvement of 1 to 16 threads.
   \item \textbf{Multiple VMs with a single threads (MVM-ST)}: 16 VMs, each VM initiates only one process to read/write data. Each VM has one core to undersubscribe the number of core available on our system. We would like to prevent the CPU becoming the bottle neck.
 \end{itemize}
-FIO runs a job after read the setting for the jobs from a configuration file. Our sample configuration file was follow the this sample form:
+FIO runs a job after read the setting for the jobs from a configuration file. Our sample configuration file was follow the this sample setting:
 \begin{lstlisting}
   ; sample setting of one thread
   [sequential-read] ; name of the thread
@@ -295,7 +290,7 @@ iodepth defines the I/O depth of the system. This defines how many IO requests t
   \label{fig:jfi}
 \end{figure*}
 
-Jain Fairness Index (JFI) has a range from 0 to 1 which indicates the level of fairness between concurrent threads. If the threads receive equal partition of bandwidth, we would achieve index of 1. If only k of n flows receive equal bandwidth (and others get none), index is k/n. In the worst case, JFI has the index of 0. We plot some figures of JFI for the three scenarios with confident interval of 95\%. The figures show that threads have very equal throughput except the case of Random Read and Random Write. We notice the reader that the figures show value of JFI from 0.6 to 1.1 for a clear view on the JFI of the system. We observe from the data that in Random Read and Random Write test, JFI is low because one of thread receives very high throughput but others receive low (need to verify with different system and different test) 
+Jain Fairness Index (JFI) has a range from 0 to 1 which indicates the level of fairness between concurrent threads. If the threads receive equal partition of bandwidth, we would achieve index of 1. If only k of n flows receive equal bandwidth (and others get none), index is k/n. In the worst case, JFI has the index of 0. We plot some figures of JFI for the three scenarios with confident interval of 95\%. The figures show that threads have very equal throughput except the case of Random Read and Random Write. We notice the reader that the figures show value of JFI from 0.6 to 1.1 for a clear view on the JFI of the system. We observe from the data that in Random Read and Random Write test, JFI is low because one of thread receives very high throughput but others receive low (need to verify with different system and different test)
 
 \subsubsection{CPU vs. Disk utilization}
 
