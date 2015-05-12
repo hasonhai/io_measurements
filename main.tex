@@ -248,11 +248,11 @@ Where:
 During these measurements all VMs were using logical volumes created on the same physical hard disk. Physical CPU cores are not reserved for each VM, but during measurements there was enough spare capacity available to guarantee that each VM had enough cores (as configured by the VM flavor) available for its exclusive use.
 
 \paragraph{Aggregated Throughput}
-  
+
 \paragraph{Jain Fairness Index}
   To evaluate fairness, we rely on the Jain Fairness Index [?], which is defined as
   $$JFI={({\sum}_{i}x_{i})^{2}\over n{\sum}_{i}x_{i}^{2}}$$
-  where $x_{i}$ is the average throughput of the ith flow and $n$ the number of parallel threads. It features interesting properties when one wants to assess the fairness of a system. If all samples (throughput values in our case) are equal, the Jain Fairness index is simply 1, which is its maximal possible value. Also, the minimal value of the JFI is $1/n$. These values correspond to the best case and worst case lines in Figure ?. JFI is very important because its can cause stragglers in MapReduce framework. When mappers cannot get their data to perform task, it increase end-job-time of the whole job. 
+  where $x_{i}$ is the average throughput of the ith flow and $n$ the number of parallel threads. It features interesting properties when one wants to assess the fairness of a system. If all samples (throughput values in our case) are equal, the Jain Fairness index is simply 1, which is its maximal possible value. Also, the minimal value of the JFI is $1/n$. JFI is very important because its can cause stragglers in MapReduce framework. When mappers cannot get their data to perform task, it increase end-job-time of the whole job.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -260,35 +260,20 @@ During these measurements all VMs were using logical volumes created on the same
 
 \subsubsection{Aggregated Throughput}
 
-\paragraph{CPU vs. Disk utilization}
-
 \begin{figure*}[t]
-  \includegraphics[scale=0.5]{CPUutilisation}
-  \caption{\textit{CPU utilisation}}
-  \label{fig:CPUutilisation}
+  \includegraphics[scale=0.6]{figures/throughput.pdf}
+  \caption{\textit{Aggregated throughput of different scenarios}}
+  \label{fig:aggthroughput}
 \end{figure*}
 
-The figures above represent the aggregated time for all threads to finish and the aggregated actual time that the thread are using the CPU. Because the amount of transfered data was multiplied proportional to the number of threads/VMs joining the test, so we cannot see clearly the overhead between the three scenarios. The distance between the solid line and the dash line represent the amount of useless time that the thread has to wait to finish its reading/writing. With this idea in mind, in later tests, we will use the same amount of transferred data to best present the overhead in terms of CPU utilization and CPU waiting time. The idea to use fixed data size is to see the increasing overhead when parallelism level increases.
-
-The figures suggest that for the same amount of data, the threads inside VMs occupied the CPU more time than the bare-metal to accomplish the tasks. There is not much different between the two virtualized scenarios: Single VM with multiple threads and multiple VM with single thread. CPU spending time is a very important metric since it represent how well the process use the allocated CPU slot. For the same amount of work unit, threads inside VM spend double the time that the same ones use inside the bare-metal environment.
-
-In bare-metal environment, the common thought is that sequential write is always slower than sequential read. But in the case of virtualized environment, we can see that sequential write is better than sequential read. The "Sequential Write" CPU utilisation can explain for the better throughput of sequential write operator in virtualized environment: because the thread running time and CPU utilisation of sequential write is less than sequential thread so we have better throughput. (Why??? maybe need to look for the way hypervisor manage the storage)
-
-The waiting time is increasing when there are more threads accessing disk in parallel. However, because the transfer volume is increase gradually proportional to the number of parallel threads, we can not see clearly the overhead when the number of concurrent threads increases. Later experiments should fix this and draw conclusion on the behaviors of the system when parallelism is increase. These figure also lack of the disk utilisation. When disk utilisation is the bottleneck, the thread running time and CPU spending time will also increase. In later experiment, we will extract also the disk utilisation to see how it affect on CPU spending time.
-
-\begin{figure*}[t]
-  \includegraphics[scale=0.5]{nml_CPUutilisation}
-  \caption{\textit{CPU utilisation after normalisation}}
-  \label{fig:nml_CPUutilisation}
-\end{figure*}
-
-To illustrate the overhead in CPU spending time and Thread Running Time incurred by the virtualization, we also plot the normalisation of the CPU Spending Time and Thread Running Time figure using bare-metal data as baseline for comparison. The figures show that for the same amount of transfered data, VMs spend double the time using the CPU. They also spend more time waiting for CPU slot, about 2 to 6 times in comparing to the bare-metal. One of the reason may also due to the bottleneck at the hard disk. This one can be verified by comparing the disk utilisation of the bare-metal and the virtualized scenarios.
+\paragraph{CPU utilization}
+\paragraph{Context switching between scenarios}
 
 \subsubsection{Jain Fairness Index}
 
 \begin{figure*}[t]
-  \includegraphics[scale=0.5]{JFI}
-  \caption{\textit{Jain Fairness Index of the three scenarios}}
+  \includegraphics[scale=0.85]{figures/JFI.pdf}
+  \caption{\textit{Jain Fairness Index of different scenarios}}
   \label{fig:jfi}
 \end{figure*}
 
