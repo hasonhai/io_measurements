@@ -16,7 +16,7 @@ do
     $appdir/bigfoot16procstest.sh $NoCore
     padtowidth=2
     NoCore=$( printf "%0*d" $padtowidth $NoCore )
-    mv $appdir/Bigfoot${NoCore}CoreSeq* $appdir/bigfoot12_cache_cfq/
+    mv $appdir/Bigfoot${NoCore}CoreSeq* $appdir/bigfoot12_cache_noop/
     
     # Enable cores
     for cpuNo in $( seq $test 31 );
