@@ -1,7 +1,7 @@
 #!/bin/bash
 ACCESSKEY="/home/sonhai/cloudbf12.pem"
 USERNAME="ubuntu"
-ONEVM="testdir/1vms.lst"
+#ONEVM="testdir/1vms.lst"
 TWOVM="testdir/2vms.lst"
 FOURVM="testdir/4vms.lst"
 EIGHTVM="testdir/8vms.lst"
@@ -15,8 +15,8 @@ do
 done
 
 for i in 01 02 03 04 05 06 07 08 09 10 ; do
-time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-test.fio $ONEVM
-mv testout OneVMOneCoreSeqRead1thread$i
+#time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-test.fio $ONEVM
+#mv testout OneVMOneCoreSeqRead1thread$i
 time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-2vm-test.fio $TWOVM
 mv testout TwoVMOneCoreSeqRead1thread$i
 time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-4vm-test.fio $FOURVM
@@ -25,8 +25,8 @@ time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-8vm-
 mv testout EightVMOneCoreSeqRead1thread$i
 time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-16vm-test.fio $SIXTEENVM
 mv testout SixteenVMOneCoreSeqRead1thread$i
-time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-write-1thread-test.fio $ONEVM
-mv testout OneVMOneCoreSeqWrite1thread$i
+#time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-write-1thread-test.fio $ONEVM
+#mv testout OneVMOneCoreSeqWrite1thread$i
 time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-write-1thread-2vm-test.fio $TWOVM
 mv testout TwoVMOneCoreSeqWrite1thread$i
 time ./test_sshless.sh $ACCESSKEY $USERNAME testdir/sequential-write-1thread-4vm-test.fio $FOURVM
