@@ -96,7 +96,8 @@ Pietro Michiardi
 
 
 \begin{abstract}
-Still very abstract
+A typical instruction for every to install Hadoop over there platform is do not virtualize the datanode.
+
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -112,18 +113,23 @@ The adoption of virtualization brings many benefits to the technology community.
     \label{cluster_snapshot}
 \end{figure}
 
-Measuring the performance of a distributed application is hard, and it is even harder when that application is running on virtualized platform which involving layers and layers of different technologies. Yet the measurement is necessary to have a proper understanding on performance of Big Data applications in the virtualized environment. Figure 1 is an abstract snapshot of a small MapReduce cluster operating in virtualized environment at a random time. There are 3 physical servers which host 7 Virtual Machines. These VMs were set-up as a Hadoop cluster and are running a Map Reduce job. To execute the job, the application initiates several parallel mappers and reducers inside each VM. Those threads are concurrently competing for the same resources at each physical host such as disk storage, memory, and CPU,... to perform their tasks. When looking at the whole picture, we see that the performance of the whole cluster is depended on the performance of every one of its building block: a physical host. To simplify the study, we select a physical host to be the foundation for the study and we model two basic and distinguished scenarios that can be seen on a physical host of a virtualized Hadoop cluster:
+Measuring the performance of a distributed application is hard, and it is even harder when that application is running on virtualized platform which involving layers and layers of different technologies. Yet the measurement is necessary to have a proper understanding on performance of Big Data applications in the virtualized environment. Figure 1 is an abstract snapshot of a small MapReduce cluster operating in virtualized environment at a random time. There are n physical servers which host multiple Virtual Machines on each of them. These VMs were set-up as a Hadoop cluster and are running a Map Reduce job. To execute the job, the application initiates several parallel mappers and reducers inside each VM. Those threads are concurrently competing for the same resources at each physical host such as disk storage, memory, and CPU,... to perform their tasks. When looking at the whole picture, we see that the performance of the whole cluster is depended on the performance of every one of its building block: one single physical host. We would like to see the different in storage I/O performance between virtualization platform and bare-metal system with a synthesis MapReduce-like workload, so we designed two extreme scenarios on virtualization and one screnario on bare-metal to make the comparison and deduct the overhead of virtualization:
 \begin{itemize}
 \item Single VM with multiple threads (SVM-MT): this scenario (figure [?]) represents the case that the host has only one VM but this VM runs many mappers and reducers at the same time. This scenario is not rare to see because many administrators like to use fat VM for their cluster and the host can only host one fat VM. We consider 5 different flavors of VM for this scenario to see how the VM's size affects on the performance.
 \item Multiple VMs with single thread (MVM-ST): this scenario (figure [?]) represents the case that we have a small VM and this VM runs only one mapper or reducer at a time. But because this is a virtualized environment and hardware resources are sharing between different customers, so there are many small VMs running on the same host. Those VMs do not know that they are competing for the same resources. This scenario is also not rare to see because the cloud administrators often share same servers for their different customers. Sharing physical resources is one of the reason that virtualization is adopted widely.
+\item Bare-metal (BM): the bare-metal system is used as the baseline to make the comparison (figure [?]). In case the big data application runs on a bare-metal environment, many mappers or reducers running at the same time requesting for IO resource. In short, it is similar to the case of SVM-MT but without virtualization. Just similar to the case of a single VM, when a bare-metal system acts as a datanode and is managed by a Node Manager, it will receive tasks from the Resource Manager to execute multiple mappers or reducers for a job. This creates the same situation on the baremetal.
 \end{itemize}
-In reality, we have different mixes between the scenarios. However, we select those two since it focuses on different components of the same platform. The SVM-MT scenario focuses on the guest OS scheduler since it has to switch between active threads. The MVM-ST one focuses on the hypervisor scheduler since it has to switch between active VMs. Last but not least, the bare-metal system is used as the baseline to make the comparison (figure [?]). In case the big data application runs on a bare-metal environment, many mappers or reducers running at the same time requesting for IO resource. In short, it is similar to the case of SVM-MT but without virtualization. In this paper, we establish our focus only on the storage I/O performance since it was thought to be one of the main bottle necks of big data application [5]. More specific, we are especially interesting in the case that we have only one local hard drive on the server since there are often cases that data were stored on same disk or VM is running on same disk.
+In reality, we have different mixes between the scenarios. However, we select those two extreme cases since it focuses on different components of the same platform. The SVM-MT scenario focuses on the guest OS scheduler since it has to switch between active threads. The MVM-ST one focuses on the hypervisor scheduler since it has to switch between active VMs.  In this paper, we establish our focus only on the storage I/O performance since it was thought to be one of the main bottle necks of big data application [5]. More specific, we are especially interesting in the case that we have only one local hard drive on the server since there are often cases that data were stored on same disk or VM is running on same disk.
 
-We consider I/O throughput and I/O fairness as the metrics to compare the performance between bare-metal and virtualized platform. The throughput metric expresses how well the system feed data to the threads while fairness keep threads away from data starvation. If one mapper cannot read data, it becomes stragglers and heighten End-Job Time which in the end reduce the responsiveness of the application. We also consider CPU utilization and the number of context switching in the experiment in order to understand the throughput result that we got. Before the study, our expectation was set on the conclusion of the overhead of virtualization on big data application workload. One part of our study repeats the findings of previous studies which show that virtualization can only reach 80-90\% of bare metal performance due to the overhead that the added virtualization layer brought up. However, that is only haft of the truth. Previous studies reveal the performance of the system when there is only one active thread that request for I/O. Our studies reveal the big picture when there are many active threads concurrently compete for I/O. And the discrepancy between scenarios only starts to show when there are more than 4 active threads/VMs requesting for IO resources. We see different performance between VM flavors. Fatter VM does not always mean better throughput. Our fattest VM gets only 60\% the throughput that a smaller one can get. We also see that bare-metal platform has problem when dealing with high level of concurrency. In our experiment, bare-metal platform can only achieve 25\% throughput in compare to a VM with 4 virtual cores. On the fairness of the systems, we see that both virtualized and bare-metal platform achieve very high fairness index. There is no different between bare-metal and virtualized platform in fairness.
+We consider I/O throughput as the metric to compare the performance between bare-metal and virtualized platform but also keep our eyes on the fairness of both platforms. The throughput metric expresses how well the system feed data to the threads while fairness keeps threads away from data starvation. Unfairness in treatment between processes creates a heterogeneous environment in which one process can becomes a straggler [\cite{matei08}] and heighten End-Job Time which in the end reduce the responsiveness of the application. We also consider CPU utilization and the number of context switching in the experiment in order to understand the throughput result that we got. Before the study, our expectation was set on the conclusion of the overhead of virtualization on big data application workload. One part of our study repeats the findings of previous studies which show that virtualization can only reach 80-90\% of bare metal performance due to the overhead that the added virtualization layer brought up. However, that is only haft of the truth. Previous studies reveal the performance of the system consider little about the different in level of concurrency and they also did not consider the big-data-application-like workload. Our studies reveal the big picture when there are different number of active threads concurrently competing for I/O. We consider three difference schedulers on the host: Noop, Deadline,and Scheduler and show the different behaviors of the baremetal and the virtualized platform in IO performance when using one scheduler. It is unexpected that using Deadline and Noop scheduler, Bare-metal can get less throughput than the VM that it hosts when level of concurrency is high. For CFQ scheduler, Bare-metal have good throughput and change little when there are many active threads executing but the VMs can get only 40\% of the total throughput that a Bare-metal can get. We see that both virtualized and bare-metal platform achieve high fairness index. There is no or very little different between bare-metal and virtualized platform in fairness index.
 
-We believe that the result from this work can help the communities to have more confident to deploy Big Data application on the cloud. However, this is just the first part in a continuation research which studies on the impacts of virtualization on Data Intensive Analysis Framework in which there are two most popular representatives: Hadoop and Spark. Hadoop and Spark performance can be bounded by network, disk I/O, or CPU performance. In this paper, we focus on disk I/O and it is the limitation of our work. Performance of Big Data application is not only depended on storage I/O performance, so when we view the performance from the application layer with actual big data workload, the result can be different or even opposite. In the next sections, we introduce to our readers our methodologies in detail. We also present the findings and explanation for the result that we got. Finally, we summarize our work at the last section and suggest the future approaches to give more meaningful results to the study.
+We believe that the result from this work can help the communities to have deeper understanding on the performance of virtualization when they need to deploy Big Data application on the cloud. However, this is just the first part in a continuation research which studies on the impacts of virtualization on Data Intensive Analysis Framework in which there are two most popular representatives: Hadoop and Spark. Hadoop and Spark performance can be bounded by network, disk I/O, or CPU performance. In this paper, we focus on and only on disk I/O and it is the limitation of our work. Performance of Big Data application is not only depended on storage I/O performance, but if one component is better, the whole process should be better. 
+
+In the next sections, we introduce to our readers the methodologies in detail. We also present the findings and explanation for the result that we got. Finally, we summarize our work at the last section and suggest the future approaches to give more meaningful results to the study.
 
 %Guide from P.Pietro: Even we looking at the application level. Measure the impact of virtualization on the big data technology. we still need a proper understanding on what happens without the application because the application is very complex. it's a large distributed system that hides a lot of details so whenever you see the result, the problem is that it's very hard to explain what happened if you only look from the perspective of Hadoop or Spark. That was the reason why we simplify the thing. Let try to somehow emulate  what is the traditional workload generated by application such as Hadoop MapReduce. The question was what happens when you have the virtualization layer that hide in the middle between your application and IO call. And that why we have the measurement of bare-metal with several different configuration of the hard drive setting and CPU setting. We show that more or less the performance did not change much. So bare metal is really stable. And then we have result that look at different flavors of CPU of virtual machine with different size. And also the number of concurrent threads. These are the useful foundation for understanding the next result that you will obtain by running some sample of map reduce application which have similar workload. State what your goal are. You establish a measurement methodology where you explain your experimental setup, your tools, metrics, why they're important. And there you explain the statistical perspective of experiments. Then to validate your initial claim once the paper is done in the introduction (for example "we see that Hadoop on virtualization is suck"). You anticipate the result.
+
+% What we different from other works? we focus on Big Data wordload, we make a simulated workload represented Hadoop and run the measurement on that workload.
 
 %to cite
 %[1] http://www.idgenterprise.com/report/big-data-2
@@ -132,39 +138,25 @@ We believe that the result from this work can help the communities to have more 
 \section{Background and Related Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{itemize}
-  \item introduce some related works on the performance of virtualization: explaining packet delay under virtualization, works from Guillaume and Dino, work from IBM on performance of KVM, work from a guy discussing the relevant of IO schedulers to virtualization system.
+  \item introduce some related works on the performance of virtualization: work from IBM on performance of KVM, work from a guy discussing the relevant of IO schedulers to virtualization system.
   \item introduce some related works on measuring performance of data intensive application
  \item then mention about the combined of both, what we are different from previous works, what are our interesting points.
 \end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
 
-In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the developers try to work around by moving the execution/programs to the data but not the other way round (like Hadoop with MapReduce framework). By such way of task distributing, the burden was shifted to storage I/O (disk and memory) performance. A typical example is Hadoop with data-locality awareness. It reported achieving greater throughput when utilising data locality[?-?]. But then it makes disk I/O become the bottle-neck. Data was read from disk, intermediate data was stored on disk, and results was written to disk. Spark has done a step further, when they leverage memory to use together with the disk, Spark reported the performance improvement up to severalfold in comparing to Hadoop with data locality awareness [?]. However, memory and cache sharing was not developed well enough to also provide fault tolerant to other big data applications but Spark. Then people use data compressing techniques to trade CPU resource for storage I/O performance. But then CPU becomes the bottle-neck [?]. The simplest model is the most efficient model. That is why many data intensive applications are still greatly depended on the hard drive performance since the developers and the administrators do not want to complicate a distributed system.
-
+In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the developers try to work around by moving the execution/programs to the data but not the other way round (like Hadoop with MapReduce framework). By such method of task distributing, the burden was shifted to storage I/O (disk and memory) performance. A typical example is Hadoop with data-locality awareness. It reported achieving greater throughput when utilising data locality[?-?]. But then it makes disk I/O become the bottle-neck. Data was read from disk, intermediate data was stored on disk, and results were written to disk. Spark has done a step further, when they leverage memory to use together with the disk, Spark reported the performance improvement up to severalfold in comparing to Hadoop with data locality awareness [?]. However, memory and cache sharing was not developed well enough to also provide fault tolerant to other big data applications but Spark. Then people use data compressing techniques to trade CPU resource for storage I/O performance. But then CPU becomes the bottle-neck [?]. The simplest model is the most efficient model. That is why many data intensive applications are still greatly depended on the hard drive performance since the developers and the administrators do not want to complicate a distributed system.
 
 When running data intensive application in virtualized environment, the situation is worse since many VMs are sharing the same resource.
-And using virtualization is to oversubscribing the same resource to get the most out of the system performance.
+And the goal of using virtualization is to share the same resource for many users.  But we often oversubscribing the same resource (allocate to many VM on the same physical host) to get the most out of the system performance.
 Given the context that many big data application are still greatly depended on disk I/O performance, we wonder how virtualization can affect on the I/O performance delicated to big data application. An experimental study of virtualization overheads for I/O operations can help to answer this question. From the characteristic of the big data application's workload, we simplify and model a simulated the workload that can be seen at the disk level (describe the workload here). We want to have the typical I/O ``pressure'' that comes from data-intensive applications.
 
-Given the knowledge about performance bottlenecks and eventual overheads of virtualization, is this going to be helpful for the applications we consider?
+Given the knowledge about performance bottlenecks and eventual overheads of virtualization, we can clear the myths about performance of Big Data on virtualized platform. We can also inform the users to select the best strategy for them when installed Big Data Application on the cloud respect to optimizing the I/O performance.
+
 
 % cite: Locality-Aware Reduce Task Scheduling for MapReduce - Mohammed Hammoud, CloudCom
 % cite: Purlieus: Locality-aware Resource Allocation for MapReduce in a Cloud - Balaji Balanisamy
 % cite: Locality-Aware Dynamic VM Reconfiguration on MapReduce Clouds - Jongse Park
-
-\begin{itemize}
-  \item \textit{What we do?}
-  \begin{itemize}
-    \item Experimental study of virtualization overheads for I/O operations
-    \item We want to have the typical I/O ``pressure'' that comes from data-intensive applications
-    \item We want to have the view from the ``guest operating system'' and the view from the applications (and see if there are differences)
-  \end{itemize}
-  \item \textit{Why and why is it important?}
-  \begin{itemize}
-    \item It is common wisdom that virtualization is ``bad'' for performance. Is it true?
-    \item Given the knowledge about performance bottlenecks and eventual overheads of virtualization, is this going to be helpful for the applications we consider?
-  \end{itemize}
-\end{itemize}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -172,24 +164,30 @@ Given the knowledge about performance bottlenecks and eventual overheads of virt
 
 \subsection{The system under measurement}
 
-Our physical machine runs on a dual quad-core Xeon L5320 server clocked at 1.86GHz, with 16GB of RAM, two 1TB hardware RAID5 volumes, and two 1Gbps network interfaces; \textit{worker} nodes execute on six dual exa-core Xeon E5-2650L (with hyperthreading enabled) servers clocked at 1.8GHz, with 128GB of RAM, ten 1TB disks (configured as JBOD, Just a Bunch of Disks). The hardware RAID provided by the server hardware has been disabled in favor of a JBOD configuration. This exposes to the operating system many more options to configure and measure the disk subsystem. Disks are all the same make and model, across the hosts: SEAGATE ST91000640SS.
+Our system runs on a dual hexa-core Xeon E5-2650L (with hyperthreading enabled) server clocked at 1.8GHz, with 128GB of RAM, ten 1TB disks. Disks are all the same make and model, across the hosts: SEAGATE ST91000640SS. The hardware RAID controller is configured with RAID 0 for each disk with write-back cache enabled. For easy interpreting the results, only one hard drive is use to host the VMs running the experiments. We also avoid  CPU and memory over-commit to make sure that our results were not affected by memory and CPU bottlenecks. The host machine runs the latest long term support Ubuntu 14.04 distribution, updated with the most recent patches. QEMU is used as the virtualizer to executing the guest code directly on the host CPU using the KVM kernel module in Linux. All energy saving settings in the BIOS are disabled, since they cause severe performance penalties. It uses the KVM hypervisor, with \texttt{virtio} and \texttt{vhost\_net} acceleration modules enabled. Virtualization support in the CPUs is enabled (VMX) and KVM uses it automatically. The hypervisor is configured to use LVM for VM storage. DevStack, which is an collection of scripts to quickly create an OpenStack development environment, was used to manage the deployment of VMs on the host. I/O scheduler is disable in guests' OS (in fact the guests' OS uses noop scheduler, a very simple FIFO scheduler) , and we switch between three different I/O schedulers of the host: Noop, Deadline, and Completed Fair Queueing (CFQ) to run experiments.
+\subsection{Overview on the components involved}
+  \subsubsection{Linux IO Schedulers}
+    
+    \paragraph{CFQ scheduler}
+    The CFQ I/O scheduler is one of the most sophisticated I/O schedulers. The CFQ I/O scheduler divides the available I/O bandwidth among all of the processes that issue I/O requests. The CFQ I/O scheduler maintains per-process queues for synchronous I/O requests. The maximum number of per-process queues that the CFQ I/O scheduler maintains for synchronous I/O requests is 64. The CFQ I/O scheduler batches together asynchronous requests from all processes based on the priorities of the processes. For example, the CFQ I/O scheduler maintains one process queue for all asynchronous requests from processes with the idle scheduling priority.
+    During each cycle, the CFQ I/O scheduler moves one request from each queue to the dispatch queue. After the CFQ I/O scheduler moves a request from each queue, it repeats the process and removes another request from each queue. After the CFQ I/O scheduler moves requests to the dispatch queue, it sorts the requests to minimize disk seeks and then services the requests accordingly. The CFQ I/O scheduler provides each queue with time to access the disk. The length of time depends on the scheduling priority of the process.
+    CFQ places synchronous requests submitted by processes into a number of per-process queues and then allocates timeslices for each of the queues to access the disk. The length of the time slice and the number of requests a queue is allowed to submit depends on the I/O priority of the given process. Asynchronous requests for all processes are batched together in fewer queues, one per priority. While CFQ does not do explicit anticipatory I/O scheduling, it achieves the same effect of having good aggregate throughput for the system as a whole, by allowing a process queue to idle at the end of synchronous I/O thereby "anticipating" further close I/O from that process. It can be considered a natural extension of granting I/O time slices to a process.
 
-\paragraph{Hypervisor}
-The host machine runs the latest long term support Ubuntu 14.04 distribution, updated with the most recent patches. QEMU is used as the virtualizer to executing the guest code directly on the host CPU using the KVM kernel module in Linux. All energy saving settings in the BIOS are disabled, since they cause severe performance penalties. It uses the KVM hypervisor, with \texttt{virtio} and \texttt{vhost\_net} acceleration modules enabled. Virtualization support in the CPUs is enabled (VMX) and KVM uses it automatically. The hypervisor is configured to use LVM for VM storage.
+    \paragraph{Deadline scheduler}
+    The Deadline I/O scheduler is one of the most sophisticated I/O schedulers. The Deadline I/O scheduler dispatches I/O requests based on the length of time that the I/O requests are in the queues. Therefore, the Deadline I/O scheduler guarantees a start service time for each I/O request. The Deadline I/O scheduler maintains the deadline queues by the expiration times, or deadlines, of the I/O requests and the other queues by the positions of the requests on the disks, or sector numbers. Each set of queues, deadline queues and other queues, includes read queues and write queues. The read queues contain read requests. Because processes often block on read operations, the Deadline I/O scheduler prioritizes read requests higher than write requests and assigns read requests shorter expiration times than write requests. The write queues contain write requests.
+    
+    Based on prioritization and expiration times, the Deadline I/O scheduler determines which request from which queue to dispatch. The Deadline I/O scheduler checks to see if the first request in the deadline queue expired. If the first request in the deadline queue expired, then the Deadline I/O scheduler services the first request in the deadline queue immediately. Otherwise it services the first request from the sorted queue. To improve disk efficiency, the Deadline I/O scheduler not only services one request but also services a batch of requests near the disk location of the request that it has just taken at the top of the queue.
+    
+    \paragraph{NOOP scheduler}
+    The NOOP scheduler is the simplest I/O scheduler for the Linux kernel. It inserts all incoming I/O requests into a simple FIFO queue and merges them. This scheduler is useful when it has been determined that the host should not attempt to re-order requests based on the sector numbers contained therein. In other words, the scheduler assumes that the host is unaware of how to productively re-order requests. Since I/O requests are potentially re-scheduled at the lower level, resequencing I/O request at the host level can create a situation where CPU time on the host is being spent on operations that will just be undone when they reach the lower level, increasing latency/decreasing throughput for no productive reason.
 
-%\paragraph{OpenVSwitch (OVS)}
-%On the Bigfoot platform, the most common OpenStack setup has been implemented. The network component, \texttt{Neutron}, is configured to use the OpenVSwitch plugin to provide connectivity between VMs. OVS is a software switch implementation that materializes as a virtual switch spanning across multiple physical hosts. In our configuration, \texttt{Neutron} creates a single OVS switch for all VMs, on each Hypervisor, using VLAN tagging to separate traffic from different tenants.
-%To provide connectivity between tenants and the external network, the virtual network is configured according to the \emph{provider router with private networks} use-case described in the OpenStack documentation.\noteby{dv}{Citation needed}
-%Thus, each tenant has its own IP subnet, and exchange traffic between each other and the Internet using a single virtual router connected to the subnets of each tenant from one side and to the external network on the other side. The \texttt{Neutron} virtual router is implemented as network namespace on the master node, where a number of NAT and routing rules provide interconnection, external access and floating IPs allocated to the VMs.
-
-\paragraph{Logical Volume Manager (LVM)}
-The storage backend for KVM is LVM. On each hypervisor, a volume group consisting of seven 1TB disks is used by Nova to dynamically create logical volumes for the ephemeral disks of KVM instances.
-
+  \subsubsection{The path of a I/O request}
+  
 \subsection{The measurement methodology}
 
 \subsubsection{Tools}
 
- We relies on FIO for disk measurement in this paper. FIO is short for Flexible I/O, a versatile I/O workload generator. It was written to benchmark or verify changes to the Linux IO subsystem by Linux developers. FIO is flexible enough to allow detailed workload setups, and it contains the necessary reporting to make sense of the data at completion. FIO is widely used as an industry standard benchmark, stress testing tool, and for I/O verification purposes. FIO isn't tied to any OS. It works on any platform from Windows to HP-UX to Android. There are also native IO engines on Linux, Windows, Solaris, etc. This is a key feature to allow many kinds of measurement repeatable across platforms. Besides, FIO supports three different types of output format: the default console output which dumps workload statistics at the end of the run, the file output with CSV format called Terse, and the JSON-based output file format which is far more flexible and has the advantage of being simple to parse for people and computers. However, JSON format only available in later version of FIO. We prefer the Terse format since it is available to more versions of FIO which can help us easily migrate our micro benchmark script to different platforms.
+We relies on FIO for disk measurement in this paper. FIO is short for Flexible I/O, a versatile I/O workload generator. It was written to benchmark or verify changes to the Linux IO subsystem by Linux developers. FIO is flexible enough to allow detailed workload setups, and it contains the necessary reporting to make sense of the data at completion. FIO is widely used as an industry standard benchmark, stress testing tool, and for I/O verification purposes. FIO isn't tied to any OS. It works on any platform from Windows to HP-UX to Android. There are also native IO engines on Linux, Windows, Solaris, etc. This is a key feature to allow many kinds of measurement repeatable across platforms. Besides, FIO supports three different types of output format: the default console output which dumps workload statistics at the end of the run, the file output with CSV format called Terse, and the JSON-based output file format which is far more flexible and has the advantage of being simple to parse for people and computers. However, JSON format only available in later version of FIO. We prefer the Terse format since it is available to more versions of FIO which can help us easily migrate our micro benchmark script to different platforms.
 
 \subsubsection{Scenarios and Experiment Design}
 
@@ -198,21 +196,22 @@ We run FIO on the physical host with different number of FIO threads (from 1 to 
 With the described scenarios above, we group our tests into three scenarios:
 \begin{itemize}
   \item \textbf{Bare-metal (BM)}: multiple threads concurrently read data from or write data to the disk. Data were read from or written to a directory placed on the same hard drive.
-  \item \textbf{Single VM with multiple threads (SVM-MT)}: 5 different VM flavors (each flavor has different number of core) ran the same test with the involvement of 1 to 16 threads.
-  \item \textbf{Multiple VMs with a single threads (MVM-ST)}: 16 VMs, each VM initiates only one process to read/write data. Each VM has one core to undersubscribe the number of core available on our system. We would like to prevent the CPU becoming the bottle neck.
+  \item \textbf{Single VM with multiple threads (SVM-MT)}: 5 different default VM flavors of OpenStack (each flavor has different number of core) ran the same test with the involvement of 1 to 16 threads. Details on the specs of the flavors can be seen on table [?]. The first line is the name of the flavors.
+      \begin{table}[h!]
+      \begin{tabular}{|l|c|c|c|c|c|}
+      \hline
+      Resource & small & medium & large & xlarge & xxlarge \\
+      \hline
+      vCPU & 1 & 2 & 4 & 8 & 16 \\
+      Memory (GB)& 1 & 4 & 8 & 16 & 16 \\
+      Disk (GB)& 40 & 40 & 40 & 40 & 40 \\
+      \hline
+      \end{tabular}
+      \end{table}
+  \item \textbf{Multiple VMs with a single threads (MVM-ST)}: 16 low-specs VMs, each VM initiates only one process to read/write data. We would like to prevent the CPU becoming the bottle neck so we use the ``small`` flavor in this screnario with only one vCPU and 1GBs of memory.
 \end{itemize}
 
-\begin{tabular}{|l|c|c|c|c|c|}
-  \hline
-  % after \\: \hline or \cline{col1-col2} \cline{col3-col4} ...
-  Resource & small & medium & large & xlarge & xxlarge \\
-  vCPU & 1 & 2 & 4 & 8 & 16 \\
-  Memory (GB)& 1 & 4 & 8 & 16 & 16 \\
-  Root disk (GB)& 40 & 40 & 40 & 40 & 40 \\
-  \hline
-\end{tabular}
-
-FIO runs a job after read the setting for the jobs from a configuration file. Our sample configuration file was follow the this sample setting:
+FIO runs a job after reading the setting for the jobs from a configuration file. Our sample configuration file was follow this sample:
 \begin{lstlisting}
   ; sample setting of one thread
   [sequential-read] ; name of the thread
@@ -227,27 +226,18 @@ FIO runs a job after read the setting for the jobs from a configuration file. Ou
 Where:
 \begin{itemize}
   \item \textbf{rw} defines the kind of disk access pattern: read (sequential reads), write (sequential writes), randread (random reads), randwrite (random writes), or mixed. We specially focus only on the two basic access patterns which was happen mostly in the context of Big Data world: sequential read and sequential write. A typical example is the Hadoop File System (HDFS) which has only sequential read and sequential write.
- \item \textbf{size} is the total size of input data for this job. FIO will run until this many bytes of data has been transferred. We choose the total transfer volume to be 4 GBs. This is large enough to avoid many kinds of buffering from the application layer to the OS layer and then to the hardware layer. In facts, some of our initial tests have showed that the smaller of size of transfered data can cause very ridiculous results because of the RAID controller's cache and disk's cache. For example, on some tests we have reported aggregated throughput of 300MB/s on a single "Seagate Constellation.2 1TB" hard drive while one of professional harddrive benchmarking website (and also the manufacturer) claims that the maximum achievable throughput is just about 115 MB/s [?]. It turned out that the problem was from the RAID controller's setting. We enable write-back cache, so the controller immediate returns after the data was written to cache but not the disk. The data will be divided to threads equally between parallel threads:
-  \begin{itemize}
-    \item 1 thread: transfers entire 4 GBs
-    \item 2 threads: each thread transfers 2 GBs
-    \item 4 threads: each thread transfers 1 GBs
-    \item 8 threads: each thread transfers 512 MBs
-    \item 16 threads: each thread transfers 256 MBs
-  \end{itemize}
+ \item \textbf{size} is the total size of input data for this job. FIO will run until this many bytes of data has been transferred. We choose the total transfer volume to be 4 GBs. This is large enough to avoid many kinds of buffering from the application layer to the OS layer and then to the hardware layer. The total amount of data will be distributed equally to all the parallel threads that join the test.
   \item \textbf{direct I/O} set the value of O\_DIRECT in the Linux kernel. I/O operations performed against files opened with O\_DIRECT bypass the kernel's page cache, writing directly to the storage. Recall that the storage may itself store the data in a write-back cache (in our case, the storage has 64 MBs of write-back cache). There is no strict guarantee that the function will return only after all data has been transferred.
   \item \textbf{iodepth} defines the I/O depth of the system. This defines how many IO requests to keep in flight against the file. The default is 1 for each file defined in the job description. This value can be overridden with a larger value for higher concurrency. We use I/O depth of 32 after run some initial tests to get the setting of the maximum performance of the disk. In fact, the default I/O depth in some of the Linux distributions can even be set upto 256 or 512.
   \item \textbf{ioengine} is \texttt{libaio} which indicates the application to use AIO (Asynchronous Linux I/O) subsystem. AIO helps to overlaps processing with I/O Operations. Application can submit (batch of) I/O operation without waiting for completion. This benefits physical I/O in particular when prefetching data. Besides, it allows to accumulate read or write requests so that the I/O subsystem can optimize performance by grouping or reordering the IO requests in favor of sequential access and large request. It helps to separate calls for submission and completion indication and pipelines operations to improve throughput. It also helps to improved utilization of CPU and devices.
 \end{itemize}
-% cite: (http://www.storagereview.com/seagate_constellation2_and_constellation_es2_hard_drive_review)
-
-\subsubsection{Result collecting and analysing}
 
 \subsection{The performance/overheads metrics}
 
 During these measurements all VMs were using logical volumes created on the same physical hard disk. Physical CPU cores are not reserved for each VM, but during measurements there was enough spare capacity available to guarantee that each VM had enough cores (as configured by the VM flavor) available for its exclusive use.
 
 \paragraph{Aggregated Throughput}
+We considered the aggregated throughput is a good metrics to compare the scenarios. We run our measurement 10 times, for each run we collect the aggregated throughput of all threads and calculate the aggregated throughput. All of our figures was plotted with 95\% of confident interval.
 
 \paragraph{Jain Fairness Index}
   To evaluate fairness, we rely on the Jain Fairness Index [?], which is defined as
@@ -258,26 +248,117 @@ During these measurements all VMs were using logical volumes created on the same
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Results}
 
-\subsubsection{Aggregated Throughput}
+\subsection{Aggregated Throughput}
 
 \begin{figure*}[t]
-  \includegraphics[scale=0.6]{figures/throughput.pdf}
-  \caption{\textit{Aggregated throughput of different scenarios}}
-  \label{fig:aggthroughput}
+  \includegraphics[scale=0.6]{figures/throughput_cfq.pdf}
+  \caption{\textit{Aggregated throughput of different scenarios with CFQ scheduler}}
+  \label{fig:aggthroughput_cfq}
 \end{figure*}
 
+\begin{figure*}[t]
+  \includegraphics[scale=0.6]{figures/throughput_noop.pdf}
+  \caption{\textit{Aggregated throughput of different scenarios with Noop scheduler}}
+  \label{fig:aggthroughput_noop}
+\end{figure*}
+
+\begin{figure*}[t]
+  \includegraphics[scale=0.6]{figures/throughput_deadline.pdf}
+  \caption{\textit{Aggregated throughput of different scenarios with Deadline scheduler}}
+  \label{fig:aggthroughput_deadline}
+\end{figure*}
+
+\paragraph{Sequential Read}
+We presented in figure \ref{fig:aggthroughput_cfq}, \ref{fig:aggthroughput_noop}, and \ref{fig:aggthroughput_deadline} the average aggregated throughput of our systems with three I/O schedulers on the host: CFQ, Noop, and Deadline respectively. For the 3 figures, we see two different behaviors of the virtualized platforms and the baremetal one. On one hand, the baremetal have very good performance with the CFQ scheduler, but it is not the same for the performance of the virtualized one. In all of the screnarios, the virtualized platform only gets about 40\% of aggregated throughput when number of parallel thread is increased. On the other hand, bare-metal system does not perform well with the Noop and Deadline scheduler. It is downgraded to 35\% at 4 parallel threads and to 19\% at more than 8 parallel threads. The virtualized platform sees a discrepancy at 4 parallels threads between different flavors. Flavors with 4 and 8 virtual cores can keep the aggregated throughput stable at 80MB/s with the increment of concurrency level. Flavors with 1 and 2 cores get low performance at 28MB/s, but still higher than the bare-metal one. The flavor of 16 cores was expected to have the greatest throughput, but it does not. Its performance is in the middle of the one with 4 or 8 cores and the one with 1 or 2 core. The case of MVM-ST is very weird when it gets low throughput at 17MB/s with 2 parallel threads but recover after the number of parallel threads increases.
+
+To explain for the result that we got, we have ask ourselves many questions:
+\begin{itemize}
+ \item \textit{In case of using Deadline and Noop scheduler, why there is different behavior for different VM flavors of SVM-MT scenario? Do reduce the number of online cores on baremetal will get us to the plot of baremetal like the plot of SVM-ST with different number of cores?} we reduced the number of online cores on baremetal to see if baremetal got similar throughput of VM with 1 and 2 core. However, for all the different numbers of online cores on the baremetal, we still get the IO performance very little in the difference or almost the same.
+ \item \textit{Why does the deadline scheduler and Noop scheduler has similar result?} The Deadline elevator uses a deadline algorithm to minimize I/O latency for a given I/O request. A standard elevator algorithm is used, unless the request at the head of one of the FIFO queues grows older than an expiration value. In that case the scheduler begins servicing expired requests. The results shown in this study show the Deadline scheduler behaving almost identically to the Noop scheduler. It seems likely that the deadlines imposed by the scheduler are never exceeded, resulting in the Deadline scheduler devolving to the same behavior as the Noop scheduler.
+ \item \textit{Why does throughput reduce after 2 concurrent threads?}
+ \item \textit{Why does SMV-MT scenario got low throughput when using CFQ scheduler at the host?} CFQ scheduler maintains 64 per-process queues for synchronous IO request while it only maintains one queue for asynchronous IO request. We checked the fairness of two platforms when using CFQ and saw that BareMetal linearly reduced its fairness from 1 (at 1 thread) to 0.85 (at 16 threads) while the virtualized platform maintains its perfect fairness at 1 during the experiments (as in figure \ref{fig:jfi}). We guess that eventhough we setup FIO to use asynchronous I/O in the guest OS, but after the IO requests left the guest OS, it was treated as synchronous IO at the host domain. CFQ get perfect fairness because it serves each IO queue of each process with an equal quantum time, when using only one queue for all the processes, the system would lose its fairness. Synchronous IO has lower performance since it is a blocking mechanism.
+\end{itemize}
+\paragraph{Sequential Write}
+For sequential write, the performance of bare-metal does not change between the host schedulers. Yet the performance of virtualized platform is a little better around 85 MB/s for Deadline and Noop in compare with the aggregated throughput at around 70 MB/s when with CFQ scheduler.
+For this access pattern, we see that the performance is affected mostly by write-back cache and write-through cache of the the RAID controller device. Noted that there are three main caching techniques that can be deployed nowadays as mentioned in details below:
+\begin{itemize}
+  \item \textbf{Write-through cache} directs write I/O onto cache and through to underlying permanent storage before confirming I/O completion to the host. This ensures data updates are safely stored on the storage device, but has the disadvantage that I/O still experiences latency based on writing to that storage.
+  \item \textbf{Write-around cache} is a similar technique to write-through cache, but write I/O is written directly to permanent storage, bypassing the cache. This can reduce the cache being flooded with write I/O that will not subsequently be re-read, but has the disadvantage is that a read request for recently written data will create a ``cache miss`` and have to be read from slower bulk storage and experience higher latency.
+  \item \textbf{Write-back cache} is where write I/O is directed to cache and completion is immediately confirmed to the host. This results in low latency and high throughput for write-intensive applications, but there is data availability exposure risk because the only copy of the written data is in cache. Write-back cache is the best performing solution for mixed workloads as both read and write I/O have similar response time levels.
+\end{itemize}
+
+We presented the IO performance of sequential write when we using write-through cache in figure \ref{fig:throughputwritethrough}.
+
+\begin{figure}[htbp]
+  \includegraphics[scale=0.7]{figures/throughputwritethrough.pdf}
+  \caption{\textit{Write-through cache is using on the host and the VMs}}
+  \label{fig:throughputwritethrough}
+\end{figure} 
+
+
 \paragraph{CPU utilization}
+
+For CPU utilization, FIO relies on getrusage(). Getrusage() returns resource usage statistics for the calling thread. The resource usages are returned in the structure pointed by the usage caller, which has the following form:
+
+\begin{lstlisting}
+struct rusage {
+    struct timeval ru_utime; // user CPU time used
+    struct timeval ru_stime; // system CPU time used
+    ...
+    long   ru_minflt;  // page reclaims (soft page faults)
+    long   ru_majflt;  // page faults (hard page faults)
+    long   ru_nswap;   // swaps
+    ...
+    long   ru_nvcsw;   // voluntary context switches
+    long   ru_nivcsw;  // involuntary context switches
+};
+\end{lstlisting}
+
+and contains inside the struct:
+
+\begin{itemize}
+  \item ru\_utime: This is the total amount of time spent executing in user mode, expressed in a timeval structure (seconds plus microseconds).
+  \item ru\_stime: This is the total amount of time spent executing in kernel mode, expressed in a timeval structure (seconds plus microseconds).
+  \item ru\_nvcsw: The number of times a context switch resulted due to a process voluntarily giving up the processor before its time slice was completed (usually to await availability of a resource).
+  \item ru\_nivcsw: The number of times a context switch resulted due to a higher priority process becoming runnable or because the current process exceeded its time slice.
+\end{itemize}
+
+FIO reports the CPU utilization for each thread by (user\_time/total\_run\_time) and (system\_time/total\_run\_time), where:
+
+\begin{itemize}
+  \item user\_time is the duration that the thread spending in user space
+  \item system\_time is the duration the that the thread spending in kernel space
+  \item total\_run\_time is the duration from the time that thread starts until the time that thread finishs or the wall lock time.
+\end{itemize}
+
+\begin{lstlisting}
+    runtime = ts->total_run_time;
+    if (runtime) {
+        double runt = (double) runtime;
+
+        usr_cpu = (double) ts->usr_time * 100 / runt;
+        sys_cpu = (double) ts->sys_time * 100 / runt;
+    } else {
+        usr_cpu = 0;
+        sys_cpu = 0;
+    }
+\end{lstlisting}
+In this report, we especially focus on the the serving time (the time that thread actually uses the CPU) and the waiting time (the time that thread has to wait for the others until its slice is up). Serving time and Waiting time were calculated by this formular:
+\begin{lstlisting}
+    serving_time = user_time + kernel_time
+    waiting_time = total_thread_runtime - serving_time
+\end{lstlisting}
+
 \paragraph{Context switching between scenarios}
 
-\subsubsection{Jain Fairness Index}
-
+\subsection{Jain Fairness Index}
+% fairness doesn't show anything that can bring the overhead of virtualization to light. We should not choose it as a metric, just use for reference on the result of the system.
 \begin{figure*}[t]
   \includegraphics[scale=0.85]{figures/JFI.pdf}
   \caption{\textit{Jain Fairness Index of different scenarios}}
   \label{fig:jfi}
 \end{figure*}
 
-Jain Fairness Index (JFI) has a range from 0 to 1 which indicates the level of fairness between concurrent threads. If the threads receive equal partition of bandwidth, we would achieve index of 1. If only k of n flows receive equal bandwidth (and others get none), index is k/n. In the worst case, JFI has the index of 0. We plot some figures of JFI for the three scenarios with confident interval of 95\%. The figures show that threads have very equal throughput except the case of Random Read and Random Write. We notice the reader that the figures show value of JFI from 0.6 to 1.1 for a clear view on the JFI of the system. We observe from the data that in Random Read and Random Write test, JFI is low because one of thread receives very high throughput but others receive low (need to verify with different system and different test)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -287,6 +368,19 @@ Jain Fairness Index (JFI) has a range from 0 to 1 which indicates the level of f
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
+Take home message:
+\begin{itemize}
+  \item The schedulers of the host play an important part of the performance of the system. We should choose it carefully. The virtualization platform achieve better aggregated throughput with Deadline and Noop scheduler. It's depended on the number of cores to achieve the greatest throughput. Currently we do not have method to select the best specs for given host specs in favor of I/O performance. But the reader can repeat our experiment with our automated scripts [?] to select the best flavor specs for their hosts.
+  \item Both platform achieve great fairness index in term of IO performance. 
+  \item Write-back and Write-through cache play important role in the performance of sequential writing for both the bare-metal and the virtualized platform. For Hadoop-like workload, user should use write-back cache since it's perform well with data intensive workload.
+\end{itemize}
+
+Future works
+\begin{itemize}
+  \item Seeing the performance from the perspective of the application (such as Hadoop or Spark)
+  \item 
+\end{itemize}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
