@@ -149,6 +149,13 @@ In the next sections, we introduce to our readers the methodologies in detail. W
 
 In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the developers try to work around by moving the execution/programs to the data but not the other way round (like Hadoop with MapReduce framework). By such method of task distributing, the burden was shifted to storage I/O (disk and memory) performance. A typical example is Hadoop with data-locality awareness. It reported achieving greater throughput when utilising data locality[?-?]. But then it makes disk I/O become the bottle-neck. Data was read from disk, intermediate data was stored on disk, and results were written to disk. Spark has done a step further, when they leverage memory to use together with the disk, Spark reported the performance improvement up to severalfold in comparing to Hadoop with data locality awareness [?]. However, memory and cache sharing was not developed well enough to also provide fault tolerant to other big data applications but Spark. Then people use data compressing techniques to trade CPU resource for storage I/O performance. But then CPU becomes the bottle-neck [?]. The simplest model is the most efficient model. That is why many data intensive applications are still greatly depended on the hard drive performance since the developers and the administrators do not want to complicate a distributed system.
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[scale=0.4]{figures/bm_vs_vm.png}
+  \caption{\textit{A typical comparison between bare-metal and virtual machine}}
+  \label{fig:bm_vs_vm}
+\end{figure}
+
 When running data intensive application in virtualized environment, the situation is worse since many VMs are sharing the same resource.
 And the goal of using virtualization is to share the same resource for many users.  But we are often oversubscribing the same resource (allocate too many VM on the same physical host) to get the most out of the system performance. Given the context that many big data application are still greatly depended on disk I/O performance, we wonder how virtualization can affect on the I/O performance delicated to big data application. An experimental study of virtualization overheads for I/O operations can help to answer this question. From the characteristic of the big data application's workload, we model a simple systhesis workload that can be seen at the disk level (describe the workload here). We want to have the typical I/O ``pressure'' that comes from data-intensive applications.
 
