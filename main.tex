@@ -98,7 +98,7 @@ Pietro Michiardi
 
 
 \begin{abstract}
-A typical instruction for every to install Hadoop over there platform is do not virtualize the datanode.
+A typical instruction for every administrator when deploy big data application is: do not virtualize your cluster. But cloud is the trending now and avoiding virtualizing the cluster is sometimes impossible for small vendors or also for big vendors when they want to use the same infrastructure for every team in their organization. The reason for a ``No-no`` is that Big data application utilises data locality to improve performance while cloud often use a remote storage. In order to keep data locality, the VM instances was setup to opererate on local hard drive and it create a situation in which many concurrently processes competing for IO resources with an intensive data volume. We designed a synthesis big data workload and do the experiments to compare between virtualized platform and baremetal. We found that virtualization overhead is impossible to avoid. However, we can reduce the impacts by selecting the optimized I/O scheduler, the optimized flavors for the VM instances, and a good``write-cache`` technique.
 
 \end{abstract}
 
@@ -117,9 +117,9 @@ The adoption of virtualization brings many benefits to the technology community.
 
 Measuring the performance of a distributed application is hard, and it is even harder when that application is running on virtualized platform which involving layers and layers of different technologies. Yet the measurement is necessary to have a proper understanding on performance of Big Data applications in the virtualized environment. Figure 1 is an abstract snapshot of a small MapReduce cluster operating in virtualized environment at a random time. There are n physical servers which host multiple Virtual Machines on each of them. These VMs were set-up as a Hadoop cluster and are running a Map Reduce job. To execute the job, the application initiates several parallel mappers and reducers inside each VM. Those threads are concurrently competing for the same resources at each physical host such as disk storage, memory, and CPU,... to perform their tasks. When looking at the whole picture, we see that the performance of the whole cluster is depended on the performance of every one of its building block: one single physical host. We would like to see the different in storage I/O performance between virtualization platform and bare-metal system with a synthesis MapReduce-like workload, so we designed two extreme scenarios on virtualization and one screnario on bare-metal to make the comparison and deduct the overhead of virtualization:
 \begin{itemize}
-\item Single VM with multiple threads (SVM-MT): this scenario (figure [?]) represents the case that the host has only one VM but this VM runs many mappers and reducers at the same time. This scenario is not rare to see because many administrators like to use fat VM for their cluster and the host can only host one fat VM. We consider 5 different flavors of VM for this scenario to see how the VM's size affects on the performance.
-\item Multiple VMs with single thread (MVM-ST): this scenario (figure [?]) represents the case that we have a small VM and this VM runs only one mapper or reducer at a time. But because this is a virtualized environment and hardware resources are sharing between different customers, so there are many small VMs running on the same host. Those VMs do not know that they are competing for the same resources. This scenario is also not rare to see because the cloud administrators often share same servers for their different customers. Sharing physical resources is one of the reason that virtualization is adopted widely.
-\item Bare-metal (BM): the bare-metal system is used as the baseline to make the comparison (figure [?]). In case the big data application runs on a bare-metal environment, many mappers or reducers running at the same time requesting for IO resource. In short, it is similar to the case of SVM-MT but without virtualization. Just similar to the case of a single VM, when a bare-metal system acts as a datanode and is managed by a Node Manager, it will receive tasks from the Resource Manager to execute multiple mappers or reducers for a job. This creates the same situation on the baremetal.
+\item Single VM with multiple threads (SVM-MT): this scenario (figure \ref{fig:svm-mt}) represents the case that the host has only one VM but this VM runs many mappers and reducers at the same time. This scenario is not rare to see because many administrators like to use fat VM for their cluster and the host can only host one fat VM. We consider 5 different flavors of VM for this scenario to see how the VM's size affects on the performance.
+\item Multiple VMs with single thread (MVM-ST): this scenario (figure \ref{fig:mvm-st}) represents the case that we have a small VM and this VM runs only one mapper or reducer at a time. But because this is a virtualized environment and hardware resources are sharing between different customers, so there are many small VMs running on the same host. Those VMs do not know that they are competing for the same resources. This scenario is also not rare to see because the cloud administrators often share same servers for their different customers. Sharing physical resources is one of the reason that virtualization is adopted widely.
+\item Bare-metal (BM): the bare-metal system is used as the baseline to make the comparison (figure \ref{fig:bm}). In case the big data application runs on a bare-metal environment, many mappers or reducers running at the same time requesting for IO resource. In short, it is similar to the case of SVM-MT but without virtualization. Just similar to the case of a single VM, when a bare-metal system acts as a datanode and is managed by a Node Manager, it will receive tasks from the Resource Manager to execute multiple mappers or reducers for a job. This creates the same situation on the baremetal.
 \end{itemize}
 In reality, we have different mixes between the scenarios. However, we select those two extreme cases since it focuses on different components of the same platform. The SVM-MT scenario focuses on the guest OS scheduler since it has to switch between active threads. The MVM-ST one focuses on the hypervisor scheduler since it has to switch between active VMs.  In this paper, we establish our focus only on the storage I/O performance since it was thought to be one of the main bottle necks of big data application [5]. More specific, we are especially interesting in the case that we have only one local hard drive on the server since there are often cases that data were stored on same disk or VM is running on same disk.
 
@@ -233,7 +233,7 @@ With the described scenarios above, we group our tests into three scenarios:
    \begin{subfigure}[b]{0.3\textwidth}
      \includegraphics[width=\textwidth]{figures/MVM-ST.png}
      \caption{\textit{MVM-ST scenario}}
-     \label{mvm-st}
+     \label{fig:mvm-st}
    \end{subfigure}
    \caption{Three scenario in the measurement}\label{fig:scenario}
 \end{figure*}
@@ -415,7 +415,7 @@ In this report, we especially focus on the the serving time (the time that threa
 % fairness doesn't show anything that can bring the overhead of virtualization to light. We should not choose it as a metric, just use for reference on the result of the system.
 \begin{figure*}[t]
   \includegraphics[scale=0.85]{figures/JFI.pdf}
-  \caption{\textit{Jain Fairness Index of different scenarios}}
+  \caption{\textit{Jain Fairness Index of different scenarios with CFQ scheduler}}
   \label{fig:jfi}
 \end{figure*}
 
@@ -428,18 +428,15 @@ In this report, we especially focus on the the serving time (the time that threa
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusion}
-Take home message:
+By using a synthesis workload mimic from a MapReduce-like application, we reveal the overhead of virtualization in term of IO performance. We confirm the results of \ref{kvmperformance2013,ioschedulerpasse2010} and giving further details on the I/O performance of the virtualized and baremetal systems respected to level of concurrency and Big-data-like workload. We have found and confirm that:
 \begin{itemize}
-  \item The schedulers of the host play an important part of the performance of the system. We should choose it carefully. The virtualization platform achieve better aggregated throughput with Deadline and Noop scheduler. It's depended on the number of cores to achieve the greatest throughput. Currently we do not have method to select the best specs for given host specs in favor of I/O performance. But the reader can repeat our experiment with our automated scripts [?] to select the best flavor specs for their hosts.
-  \item Both platform achieve great fairness index in term of IO performance.
-  \item Write-back and Write-through cache play important role in the performance of sequential writing for both the bare-metal and the virtualized platform. For Hadoop-like workload, user should use write-back cache since it's perform well with data intensive workload.
+  \item The schedulers of the host play an important role in the behavior of the performance of the system. A cloud administrator should choose Deadline of Noop scheduler for there Big Data application. If they want to use the baremetal one, CFQ is a better choice since it works well with data intensive workload. The virtualization platform achieve better aggregated throughput with Deadline and Noop scheduler. In addition, It's depended on the number of cores to achieve the greatest throughput for one VM instance in the cloud. Currently we do not have a method to select the best specs for the VM with a given host specs in favor of I/O performance. But the reader can repeat our experiment with our automated scripts \ref{link:github} to select the best flavor for their hosts.
+  \item Both platform achieve great fairness index in term of IO performance. Keeping our eyes on the fairness index enables us to explain the bad performance of SVM-MT with the CFQ scheduler.
+  \item For sequential write workload, we showed that the virtualized platform lose 15-30\% in compare with the bare-metal. Both platform are affected greatly by the caching technique that deploy on the RAID controller. In details, Write-back and Write-through cache play important role in the performance of sequential writing for both the bare-metal and the virtualized platform. For Hadoop-like workload, user should use write-back cache since it's perform well with data intensive workload.
 \end{itemize}
+However, this work is still limited in explaining the insides that cause the seperated performance between VM flavors. We also avoid memory and CPU over-commit which is happen often happen when using virtualization technology.
 
-Future works
-\begin{itemize}
-  \item Seeing the performance from the perspective of the application (such as Hadoop or Spark)
-  \item 
-\end{itemize}
+In future, we would like to see how the I/O performance was seen from the perspective of Hadoop and Spark with realistic job. From then we can prove the correcness of our synthesis workload design.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
