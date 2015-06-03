@@ -204,7 +204,7 @@ We run FIO on the physical host with different number of FIO threads (from 1 to 
 With the described scenarios above, we group our tests into three scenarios:
 \begin{itemize}
   \item \textbf{Bare-metal (BM)}: multiple threads concurrently read data from or write data to the disk. Data were read from or written to a directory placed on the same hard drive.
-      
+
   \item \textbf{Single VM with multiple threads (SVM-MT)}: 5 different default VM flavors of OpenStack (each flavor has different number of core) ran the same test with the involvement of 1 to 16 threads. Details on the specs of the flavors can be seen on table [?]. The first line is the name of the flavors.
       \begin{table}[h!]
       \begin{tabular}{|l|c|c|c|c|c|}
@@ -323,7 +323,7 @@ We considered the aggregated throughput is a good metrics to compare the scenari
      \includegraphics[width=\textwidth]{figures/throughput_noop_write.pdf}
      \caption{Noop}
      \label{fig:aggthroughput_noop_write}
-   \end{subfigure}   
+   \end{subfigure}
    \caption{Aggregated throughput with the three I/O schedulers}\label{fig:aggthroughput}
 \end{figure*}
 
@@ -392,9 +392,9 @@ and contains inside the struct:
 FIO reports the CPU utilization for each thread by (user\_time/total\_run\_time) and (system\_time/total\_run\_time), where:
 
 \begin{itemize}
-  \item user\_time is the duration that the thread spending in user space
-  \item system\_time is the duration the that the thread spending in kernel space
-  \item total\_run\_time is the duration from the time that thread starts until the time that thread finishs or the wall lock time.
+  \item \textit{user\_time} is the duration that the thread spending in user space
+  \item \textit{system\_time} is the duration the that the thread spending in kernel space
+  \item \textit{total\_run\_time} is the duration from the time that thread starts until the time that thread finishs or the wall lock time.
 \end{itemize}
 
 \begin{lstlisting}
@@ -417,8 +417,52 @@ In this report, we especially focus on the the serving time (the time that threa
 
 \paragraph{Context switching between scenarios}
 
+\begin{figure*}[t]
+   \centering
+   \begin{subfigure}[b]{0.3\textwidth}
+     \includegraphics[width=\textwidth]{figures/contextswitching_cfq_read.pdf}
+     \caption{CFQ}
+     \label{fig:contextswitching_cfq_read}
+   \end{subfigure}%
+   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+     %(or a blank line to force the subfigure onto a new line)
+   \begin{subfigure}[b]{0.3\textwidth}
+     \includegraphics[width=\textwidth]{figures/contextswitching_deadline_read.pdf}
+     \caption{Deadline}
+     \label{fig:contextswitching_dealine_read}
+   \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+      %(or a blank line to force the subfigure onto a new line)
+   \begin{subfigure}[b]{0.3\textwidth}
+     \includegraphics[width=\textwidth]{figures/contextswitching_noop_read.pdf}
+     \caption{Noop}
+     \label{fig:contextswitching_noop_read}
+   \end{subfigure}
+   \hfill
+   \begin{subfigure}[b]{0.3\textwidth}
+     \includegraphics[width=\textwidth]{figures/contextswitching_cfq_write.pdf}
+     \caption{CFQ}
+     \label{fig:contextswitching_cfq_write}
+   \end{subfigure}%
+   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+     %(or a blank line to force the subfigure onto a new line)
+   \begin{subfigure}[b]{0.3\textwidth}
+     \includegraphics[width=\textwidth]{figures/contextswitching_deadline_write.pdf}
+     \caption{Deadline}
+     \label{fig:contextswitching_deadline_write}
+   \end{subfigure}
+    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+      %(or a blank line to force the subfigure onto a new line)
+   \begin{subfigure}[b]{0.3\textwidth}
+     \includegraphics[width=\textwidth]{figures/contextswitching_noop_write.pdf}
+     \caption{Noop}
+     \label{fig:contextswitching_noop_write}
+   \end{subfigure}
+   \caption{Number of context switchings with the three I/O schedulers}\label{fig:contextswitching}
+\end{figure*}
+
 \subsection{Jain Fairness Index}
-% fairness doesn't show anything that can bring the overhead of virtualization to light. We should not choose it as a metric, just use for reference on the result of the system.
+In our experiments, for all the I/O schedulers and platforms. Fairness index is very high. We may think that fairness is not a good metric for the comparison between the two systems. However,
 \begin{figure*}[t]
   \includegraphics[scale=0.85]{figures/JFI.pdf}
   \caption{\textit{Jain Fairness Index of different scenarios with CFQ scheduler}}
@@ -442,7 +486,7 @@ By using a synthesis workload mimic from a MapReduce-like application, we reveal
 \end{itemize}
 However, this work is still limited in explaining the insides that cause the seperated performance between VM flavors. We also avoid memory and CPU over-commit which is happen often happen when using virtualization technology.
 
-In future, we would like to see how the I/O performance was seen from the perspective of Hadoop and Spark with realistic job. From then we can prove the correcness of our synthesis workload design.
+In future, we would like to see how the I/O performance was seen from the perspective of Hadoop and Spark with realistic job. From then we can prove the correctness of our synthesis workload design.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
