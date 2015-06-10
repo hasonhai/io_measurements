@@ -126,7 +126,7 @@ Measuring the performance of a distributed application is hard, and it is even h
 \end{itemize}
 In this paper, we establish our focus only on the performance of shared storage I/O since it was thought to be one of the main bottle necks of big data application [5]. More specific, we are especially interesting in the performance of big data workload - mainly sequential read and sequential write in parallel issued from concurrent tasks - on the shared storage I/O. We consider I/O throughput as the metric to compare the performance between bare-metal and virtualized platform. We also keep our observation on the fairness of both platforms. The throughput metric expresses how well the system feed data to the threads while fairness keeps threads away from data starvation. Unfairness in treatment between processes creates a heterogeneous environment in which one process can becomes a straggler [\cite{matei08}] and heighten End-Job Time which in the end reduce the responsiveness of the application. We also consider CPU utilization, disk utilization, and the number of context switching in the experiments to "pinpoint" the components which affected most on the performance of shared I/O.
 
-% This part talk about the expectation and the result of the paper, need to write it better  
+% This part talk about the expectation and the result of the paper, need to write it better
 Before the study, our expectation was set on the conclusion of the overhead of virtualization on big data application workload. One part of our study repeats the findings of previous studies which show that virtualization can only reach maximum 80-90\% of bare metal performance due to the overhead that the added virtualization layer brought up. Previous studies reveal the performance of the system consider little about the different in level of concurrency and they also did not consider the big-data-application-like workload. Our studies reveal the big picture when there are different number of active threads concurrently competing for I/O. We consider three difference schedulers on the host: Noop, Deadline,and Scheduler and show the different behaviors of the baremetal and the virtualized platform in IO performance when using one scheduler. It is unexpected that using Deadline and Noop scheduler, Bare-metal can get less throughput than the VM that it hosts when level of concurrency is high. For CFQ scheduler, Bare-metal have good throughput and change little when there are many active threads executing but the VMs can get only 40\% of the total throughput that a Bare-metal can get. We see that both virtualized and bare-metal platform achieve high fairness index. There is no or very little different between bare-metal and virtualized platform in fairness index.
 
 In the next sections, we introduce to our readers the methodologies in detail. We also present the findings and explanation for the result that we got. Finally, we summarize our work at the last section and suggest the future approaches to give more meaningful results to the study.
@@ -159,6 +159,13 @@ And the goal of using virtualization is to share the same resource for many user
 
 Given the knowledge about performance bottlenecks and eventual overheads of virtualization, we can clear the myths about performance of Big Data on virtualized platform. We can also inform the users to select the best strategy for them when installed Big Data Application on the cloud respecting to optimizing the I/O performance.
 
+Is it worthy to trade performance for virtualization benefits (resource consolidation, dynamic resource allocation, avoiding under-utilized dedicated hardware resource, improving service availability)?
+% What causes overhead
+``Seeing double`` problem: There may be two file systems. The guest file system and the host file system which holds the image file. There may be two volume managers. The guest and host can both use ``LVM`` and ``md`` independently. There are two page caches. Both guest and host can buffer pages from a file. There are two I/O schedulers. The guest will reorder or delay I/O but the host will too. Configuring either the guest or the host to bypass these layers typically leads to best performance.
+
+Adding layers of complexity: 
+- Extended Page Tables (EPT) add a level of address translation for guest physical memory. Guest memory address -> Guest Page Table -> Host Page Table -> Physical memory
+- VM management: Switching between VMs, host hardware access and resource management  
 
 % cite: Locality-Aware Reduce Task Scheduling for MapReduce - Mohammed Hammoud, CloudCom
 % cite: Purlieus: Locality-aware Resource Allocation for MapReduce in a Cloud - Balaji Balanisamy
@@ -172,6 +179,9 @@ Given the knowledge about performance bottlenecks and eventual overheads of virt
 
 Our system runs on a dual hexa-core Xeon E5-2650L (with hyperthreading enabled) server clocked at 1.8GHz, with 128GB of RAM, ten 1TB disks. Disks are all the same make and model, across the hosts: SEAGATE ST91000640SS. The hardware RAID controller is configured with RAID 0 for each disk with write-back cache enabled. For easy interpreting the results, only one hard drive is use to host the VMs running the experiments. We also avoid  CPU and memory over-commit to make sure that our results were not affected by memory and CPU bottlenecks. The host machine runs the latest long term support Ubuntu 14.04 distribution, updated with the most recent patches. QEMU is used as the virtualizer to executing the guest code directly on the host CPU using the KVM kernel module in Linux. All energy saving settings in the BIOS are disabled, since they cause severe performance penalties. It uses the KVM hypervisor, with \texttt{virtio} and \texttt{vhost\_net} acceleration modules enabled. Virtualization support in the CPUs is enabled (VMX) and KVM uses it automatically. The hypervisor is configured to use LVM for VM storage. DevStack, which is an collection of scripts to quickly create an OpenStack development environment, was used to manage the deployment of VMs on the host. I/O scheduler is disable in guests' OS (in fact the guests' OS uses noop scheduler, a very simple FIFO scheduler) , and we switch between three different I/O schedulers of the host: Noop, Deadline, and Completed Fair Queueing (CFQ) to run experiments.
 \subsection{Overview on the components involved}
+
+  Application and guest kernel work similar to bare metal. Guest talks to QEMU via emulated hardware. QEMU performs I/O to an image file on behalf of the guest. Host kernel treats guest I/O like any userspace application. Therefore, the I/O performance of the guests is depended greatly on the host's I/O schedulers. Understanding how I/O schedulers works, how the kernel seeing a guest as an application, how the guest runs on the host can help to pinpoint the overheads of the virtualized platform.
+
   \subsubsection{Linux IO Schedulers}
 
     \paragraph{CFQ scheduler}
@@ -188,6 +198,12 @@ Our system runs on a dual hexa-core Xeon E5-2650L (with hyperthreading enabled) 
     The NOOP scheduler is the simplest I/O scheduler for the Linux kernel. It inserts all incoming I/O requests into a simple FIFO queue and merges them. This scheduler is useful when it has been determined that the host should not attempt to re-order requests based on the sector numbers contained therein. In other words, the scheduler assumes that the host is unaware of how to productively re-order requests. Since I/O requests are potentially re-scheduled at the lower level, resequencing I/O request at the host level can create a situation where CPU time on the host is being spent on operations that will just be undone when they reach the lower level, increasing latency/decreasing throughput for no productive reason.
 
   \subsubsection{The path of a I/O request}
+  
+  When an VM is created, QEMU (the userspace process that performs most device emulation and controls the guest) creates a process and forks several vcpu threads associating same number of virtual cpu. Each guest CPU has a dedicated vcpu thread that uses the kvm.ko module to execute guest code. Besides, the ``iothread`` process is created for handling IO for this virtual machine. There is an I/O thread that runs a select loop to handle events. Only one thread may be executing QEMU code at any given time. This excludes guest code and blocking in select.
+
+  Application and guest kernel work similar to bare metal. Guest talks to QEMU via emulated hardware. QEMU performs I/O to an image file on behalf of the guest. Host kernel treats guest I/O like any user space application. QEMU presents emulated storage interfaces to the guest. Virtio is a paravirtualized storage interface, delivers the best performance. One virtio-blk PCI adapter per block device
+
+  % Rewrite everything for this. Clarify how a request was submitted to the host. Then look for information how IO request was handle at the host.
 
 \subsection{The measurement methodology}
 
@@ -256,7 +272,8 @@ FIO runs a job after reading the setting for the jobs from a configuration file.
 
 Where:
 \begin{itemize}
-  \item \textbf{rw} defines the kind of disk access pattern: read (sequential reads), write (sequential writes), randread (random reads), randwrite (random writes), or mixed. We specially focus only on the two basic access patterns which was happen mostly in the context of Big Data world: sequential read and sequential write. A typical example is the Hadoop File System (HDFS) which has only sequential read and sequential write.
+  \item \textbf{rw} defines the kind of disk access pattern: read (sequential reads), write (sequential writes), randread (random reads), randwrite (random writes), or mixed. We specially focus only on the two basic access patterns which happen mostly in the context of Big Data world: sequential read and sequential write. A typical example is the Hadoop File System (HDFS) which writes data in large contiguous chunks on disk, which in turn means data is written and read in large sequential operations. For HDFS, this minimizes drive seek operations — one of the slowest operations a mechanical disk can perform — and results in better performance when streaming data to workers (locally or remotely) \ref{chapter2-HDFS-HadoopOperationBook}.
+I/O operations.
  \item \textbf{size} is the total size of input data for this job. FIO will run until this many bytes of data has been transferred. We choose the total transfer volume to be 4 GBs. This is large enough to avoid many kinds of buffering from the application layer to the OS layer and then to the hardware layer. The total amount of data will be distributed equally to all the parallel threads that join the test.
   \item \textbf{direct I/O} set the value of O\_DIRECT in the Linux kernel. I/O operations performed against files opened with O\_DIRECT bypass the kernel's page cache, writing directly to the storage. Recall that the storage may itself store the data in a write-back cache (in our case, the storage has 64 MBs of write-back cache). There is no strict guarantee that the function will return only after all data has been transferred.
   \item \textbf{iodepth} defines the I/O depth of the system. This defines how many IO requests to keep in flight against the file. The default is 1 for each file defined in the job description. This value can be overridden with a larger value for higher concurrency. We use I/O depth of 32 after run some initial tests to get the setting of the maximum performance of the disk. In fact, the default I/O depth in some of the Linux distributions can even be set upto 256 or 512.
@@ -358,10 +375,10 @@ To explain for the result that we got, we have ask ourselves many questions:
      \end{figure*}
  \item \textit{Why does the deadline scheduler and Noop scheduler has similar result?} The Deadline elevator uses a deadline algorithm to minimize I/O latency for a given I/O request. A standard elevator algorithm is used, unless the request at the head of one of the FIFO queues grows older than an expiration value. In that case the scheduler begins servicing expired requests. The results shown in this study show the Deadline scheduler behaving almost identically to the Noop scheduler. It seems likely that the deadlines imposed by the scheduler are never exceeded, resulting in the Deadline scheduler devolving to the same behavior as the Noop scheduler.
  \item \textit{Why does throughput reduce after 2 concurrent threads?}
- \item \textit{What exactly is happening at the hypervisor level in the screnario with MVM-ST? Why do we have an increasing trend?}
- \item \textit{Why is READ performance worse than WRITE?} For write performance, we are writing to the cache of the RAID controller, but not actually writing to the disk. It is clearly showed in the figure with the cache-through technique (figure \ref{fig:throughputwritethrough}, when the OS waits for system calls return after the I/O request was written successfully to disk, we have less output.
+ \item \textit{What exactly is happening at the hypervisor level in the scenario with MVM-ST? Why do we have an increasing trend?}
+ \item \textit{Why is READ performance worse than WRITE?} For write performance, we are writing to the cache of the RAID controller, but not actually writing to the disk. It is clearly showed in the figure with the cache-through technique (figure \ref{fig:throughputwritethrough}), when the OS waits for system calls return after the I/O request was written successfully to disk, we have less output.
  \item \textit{Is the disk or the vdisk the bottleneck?} % To answer this, we need to find the disk utilization from the perspectives of both the guest OS and host OS.
- \item \textit{Is the CPU or vCPU the bottleneck?}    
+ \item \textit{Is the CPU or vCPU the bottleneck?}
  \item \textit{Why does SMV-MT scenario got low throughput when using CFQ scheduler at the host?} CFQ scheduler maintains 64 per-process queues for synchronous IO request while it only maintains one queue for asynchronous IO request. We checked the fairness of two platforms when using CFQ and saw that BareMetal linearly reduced its fairness from 1 (at 1 thread) to 0.85 (at 16 threads) while the virtualized platform maintains its perfect fairness at 1 during the experiments (as in figure \ref{fig:jfi}). We guess that eventhough we setup FIO to use asynchronous I/O in the guest OS, but after the IO requests left the guest OS, it was treated as synchronous IO at the host domain. CFQ get perfect fairness because it serves each IO queue of each process with an equal quantum time, when using only one queue for all the processes, the system would lose its fairness. Synchronous IO has lower performance since it is a blocking mechanism.
 \end{itemize}
 
@@ -398,7 +415,7 @@ FIO reports the CPU utilization for each thread by (ru\_utime/run\_time) and (ru
 \begin{itemize}
   \item \textit{ru\_utime} is the duration that the thread spending in user space
   \item \textit{ru\_stime} is the duration the that the thread spending in kernel space
-  \item \textit{run\_time} is the duration from the time that thread starts until the time that thread finishs or the wall lock time.
+  \item \textit{run\_time} is the duration from the time that thread starts until the time that thread finishes or the wall lock time.
 \end{itemize}
 
 \begin{lstlisting}
@@ -413,7 +430,7 @@ FIO reports the CPU utilization for each thread by (ru\_utime/run\_time) and (ru
         sys_cpu = 0;
     }
 \end{lstlisting}
-In this report, we especially focus on the the serving time (the time that thread actually uses the CPU) and the waiting time (the time that thread has to wait for the others until its slice is up). Serving time and Waiting time were calculated by this formular:
+In this report, we especially focus on the the serving time (the time that thread actually uses the CPU) and the waiting time (the time that thread has to wait for the others until its slice is up). Serving time and Waiting time were calculated by this formula:
 \begin{lstlisting}
     serving_time = ru_utime + ru_stime
     waiting_time = run_time - serving_time
@@ -466,7 +483,7 @@ In this report, we especially focus on the the serving time (the time that threa
 \end{figure*}
 
 \subsection{Jain Fairness Index}
-In our experiments, for all the I/O schedulers and platforms. Fairness index is very high. We may think that fairness is not a good metric for the comparison between the two systems. However,
+In our experiments, for all the I/O schedulers and platforms. Fairness index is very high. We may think that fairness is not a good metric for the comparison between the two systems. However, 
 \begin{figure*}[t]
   \includegraphics[scale=0.85]{figures/JFI.pdf}
   \caption{\textit{Jain Fairness Index of different scenarios with CFQ scheduler}}
