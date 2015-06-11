@@ -98,7 +98,7 @@ Pietro Michiardi
 
 
 \begin{abstract}
-A typical advice for every administrators when deploying big data application is: do not virtualize your clusters. But cloud is the trending now and avoiding virtualizing the cluster is sometimes impossible for small vendors or also for big vendors when they want to use the same infrastructure for every teams in their organization. The reason for a ``no-no`` is that big data application utilises data locality to improve performance while cloud often uses remote storages to increase high flexibility and high availability. In order to keep data locality feature, the VM instances were setup to opererate on local hard drives and it creates a situation in which many concurrently processes competing for IO resources with an intensive data volume. We designed a synthesis big data workload and do the experiments to compare between virtualized platform and bare-metal. We found that virtualization overhead is impossible to avoid. However, we can reduce the impacts by selecting the optimized I/O scheduler, the optimized flavors for the VM instances, and a good ``write-cache`` technique.
+Bla bla bla bla bla
 
 \end{abstract}
 
@@ -159,6 +159,8 @@ A Hadoop job insludes several phases: read (1), spill (1), merge (1), transfer (
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
+
+A typical advice for every administrators when deploying big data application is: do not virtualize your clusters. But cloud is the trending now and avoiding virtualizing the cluster is sometimes impossible for small vendors or also for big vendors when they want to use the same infrastructure for every teams in their organization. The reason for a ``no-no`` is that big data application utilises data locality to improve performance while cloud often uses remote storages to increase high flexibility and high availability. In order to keep data locality feature, the VM instances were setup to opererate on local hard drives and it creates a situation in which many concurrently processes competing for IO resources with an intensive data volume. We designed a synthesis big data workload and do the experiments to compare between virtualized platform and bare-metal. We found that virtualization overhead is impossible to avoid. However, we can reduce the impacts by selecting the optimized I/O scheduler, the optimized flavors for the VM instances, and a good ``write-cache`` technique.
 
 When running data intensive application in virtualized environment, the situation is worse since many VMs are sharing the same resource.
 And the goal of using virtualization is to share the same resource for many users.  But we are often oversubscribing the same resource (allocate too many VM on the same physical host) to get the most out of the system performance. Given the context that many big data application are still greatly depended on disk I/O performance, we wonder how virtualization can affect on the I/O performance delicated to big data application. An experimental study of virtualization overheads for I/O operations can help to answer this question. From the characteristic of the big data application's workload, we model a simple systhesis workload that can be seen at the disk level (describe the workload here). We want to have the typical I/O ``pressure'' that comes from data-intensive applications.
@@ -292,9 +294,9 @@ During these measurements all VMs were using logical volumes created on the same
 We considered the aggregated throughput is a good metrics to compare the scenarios. We run our measurement 10 times, for each run we collect the aggregated throughput of all threads and calculate the aggregated throughput. All of our figures was plotted with 95\% of confident interval.
 
 \paragraph{Jain Fairness Index}
-  To evaluate fairness, we rely on the Jain Fairness Index [?], which is defined as
+  To evaluate fairness, we rely on the Jain Fairness Index \ref{jain}, which is defined as
   $$JFI={({\sum}_{i}x_{i})^{2}\over n{\sum}_{i}x_{i}^{2}}$$
-  where $x_{i}$ is the average throughput of the ith flow and $n$ the number of parallel threads. It features interesting properties when one wants to assess the fairness of a system. If all samples (throughput values in our case) are equal, the Jain Fairness index is simply 1, which is its maximal possible value. Also, the minimal value of the JFI is $1/n$. JFI is very important because its can cause stragglers in MapReduce framework. When mappers cannot get their data to perform task, it increase end-job-time of the whole job.
+  where $x_{i}$ is the average throughput of the $i^th$ flow and $n$ the number of parallel threads. It features interesting properties when one wants to assess the fairness of a system. If all samples (throughput values in our case) are equal, the Jain Fairness index is simply 1, which is its maximal possible value. Also, the minimal value of the JFI is $\frac{1}{n}$. JFI is very important because its can cause stragglers in big data application. Straggler is created when a task does not receive the same amount of data as other tasks, it cannot perform its task and let the whole execution process to wait for its result. This increase the completion time of the whole job.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -469,7 +471,8 @@ Bla bla bla
 \end{figure*}
 
 \subsection{Jain Fairness Index}
-In our experiments, for all the I/O schedulers and platforms. Fairness index is very high. We may think that fairness is not a good metric for the comparison between the two systems. However, 
+In our experiments, for all the I/O schedulers and platforms. Fairness index is very high. Fairness may not show much the different between bare-metal and virtualization in term of performance, but why did we select it as a metric for the comparison? Because fairness has big impacts on Big Data application. Whenever a task is not received the same amount of data as other tasks, it will become a straggler \ref{matei08}. In the context of big data application, a straggler is very bad. 1) For Hadoop and Spark, in particular, the slowest task determines the overall job completion time. Straggler causes the whole execution to wait for some slow tasks before it can finish and return the results. 2) Many systems like Hadoop and Spark deploy task speculation. This is an optimization technique to performs some tasks that may not be actually needed. The main idea is to run a task before it is known whether the results of that task will be needed, so as to prevent a delay incurred by re-run that task after it is known whether it is needed. If it turns out the work was not needed after all, any result produced by the speculative tasks is ignored. If we have a fair system, we can avoid wasting resources for the speculative tasks.
+ 
 \begin{figure*}[t]
   \includegraphics[scale=0.85]{figures/JFI.pdf}
   \caption{\textit{Jain Fairness Index of different scenarios with CFQ scheduler}}
