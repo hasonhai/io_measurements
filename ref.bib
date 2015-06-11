@@ -1,3 +1,4 @@
+% ================ Proceedings =======================
 @inproceedings{matei10,
     abstract = {{As organizations start to use data-intensive cluster computing systems like Hadoop and Dryad for more applications, there is a growing need to share clusters between users. However, there is a conflict between fairness in scheduling and data locality (placing tasks on nodes that contain their input data). We illustrate this problem through our experience designing a fair scheduler for a 600-node Hadoop cluster at Facebook. To address the conflict between locality and fairness, we propose a simple algorithm called delay scheduling: when the job that should be scheduled next according to fairness cannot launch a local task, it waits for a small amount of time, letting other jobs launch tasks instead. We find that delay scheduling achieves nearly optimal data locality in a variety of workloads and can increase throughput by up to 2x while preserving fairness. In addition, the simplicity of delay scheduling makes it applicable under a wide variety of scheduling policies beyond fair sharing.}},
     address = {New York, NY, USA},
@@ -38,6 +39,8 @@
     year = {2008}
 }
 
+% ==================== Books ============================
+
 @inbook{HadoopOperationsBook,
  author = {Sammer, Eric},
  title = {Hadoop Operations},
@@ -47,6 +50,7 @@
  publisher = {O'Reilly Media, Inc.},
 }
 
+% =================== Articles ==========================
 @article{jain98,
     abstract = {{Fairness is an important performance criterion in all resource allocation
 schemes, including those in distributed computer systems. However, it is often
@@ -75,6 +79,39 @@ Also, the discrimination index can be defined as 1 - fairness index.}},
     year = {1998}
 }
 
+@article{boutcher10,
+    abstract = {{We examine whether traditional disk I/O scheduling still provides benefits in a layered system consisting of virtualized operating systems and underlying virtual machine monitor. We demonstrate that choosing the appropriate scheduling algorithm in guest operating systems provides performance benefits, while scheduling in the virtual machine monitor has no measurable advantage. We propose future areas for investigation, including schedulers optimized for running in a virtual machine, for running in a virtual machine monitor, and layered schedulers optimizing both application level access and the underlying storage technology.}},
+    address = {New York, NY, USA},
+    author = {Boutcher, David and Chandra, Abhishek},
+    citeulike-article-id = {8273120},
+    citeulike-linkout-0 = {http://portal.acm.org/citation.cfm?id=1740396},
+    citeulike-linkout-1 = {http://dx.doi.org/10.1145/1740390.1740396},
+    doi = {10.1145/1740390.1740396},
+    issn = {0163-5980},
+    journal = {SIGOPS Oper. Syst. Rev.},
+    keywords = {scheduling, virtualization},
+    month = mar,
+    pages = {20--24},
+    posted-at = {2011-06-06 17:11:43},
+    priority = {5},
+    publisher = {ACM},
+    title = {{Does virtualization make disk scheduling pass\'{e}?}},
+    url = {http://dx.doi.org/10.1145/1740390.1740396},
+    volume = {44},
+    year = {2010}
+}
+
+% ================ Whitepaper & Technical Reports ======
+
+@techreport{khoa13,
+     title = {{KVM Virtualized I/O Performance: Achieving Unprecedented I/O Performance Using Virtio-Blk-Data-Plane Technology Preview in SUSE Linux Enterprise Server 11 Service Pack 3 (SP3)}},
+     author = {Khoa Huynh and Andrew Theurer},
+     year = {2013},
+     institution = {IBM Linux Technology Center},
+     month = {06},
+}
+
+% ================ Link ============================
 @misc{idg,
   author = {IDG Enterprise},
   title = {{Research Report on Big Data}},
