@@ -1,0 +1,108 @@
+@inproceedings{matei10,
+    abstract = {{As organizations start to use data-intensive cluster computing systems like Hadoop and Dryad for more applications, there is a growing need to share clusters between users. However, there is a conflict between fairness in scheduling and data locality (placing tasks on nodes that contain their input data). We illustrate this problem through our experience designing a fair scheduler for a 600-node Hadoop cluster at Facebook. To address the conflict between locality and fairness, we propose a simple algorithm called delay scheduling: when the job that should be scheduled next according to fairness cannot launch a local task, it waits for a small amount of time, letting other jobs launch tasks instead. We find that delay scheduling achieves nearly optimal data locality in a variety of workloads and can increase throughput by up to 2x while preserving fairness. In addition, the simplicity of delay scheduling makes it applicable under a wide variety of scheduling policies beyond fair sharing.}},
+    address = {New York, NY, USA},
+    author = {Zaharia, Matei and Borthakur, Dhruba and Sarma, Joydeep S. and Elmeleegy, Khaled and Shenker, Scott and Stoica, Ion},
+    booktitle = {Proceedings of the 5th European conference on Computer systems},
+    citeulike-article-id = {9938980},
+    citeulike-linkout-0 = {http://portal.acm.org/citation.cfm?id=1755913.1755940},
+    citeulike-linkout-1 = {http://dx.doi.org/10.1145/1755913.1755940},
+    doi = {10.1145/1755913.1755940},
+    isbn = {978-1-60558-577-2},
+    keywords = {hadoop, scheduler},
+    location = {Paris, France},
+    pages = {265--278},
+    posted-at = {2011-12-14 13:43:50},
+    priority = {2},
+    publisher = {ACM},
+    series = {EuroSys '10},
+    title = {{Delay scheduling: a simple technique for achieving locality and fairness in cluster scheduling}},
+    url = {http://dx.doi.org/10.1145/1755913.1755940},
+    year = {2010}
+}
+
+@inproceedings{matei08,
+    abstract = {{MapReduce is emerging as an important programming model for large-scale data-parallel applications such as web indexing, data mining, and scientific simulation. Hadoop is an open-source implementation of MapReduce enjoying wide adoption and is often used for short jobs where low response time is critical. Hadoop's performance is closely tied to its task scheduler, which implicitly assumes that cluster nodes are homogeneous and tasks make progress linearly, and uses these assumptions to decide when to speculatively re-execute tasks that appear to be stragglers. In practice, the homogeneity assumptions do not always hold. An especially compelling setting where this occurs is a virtualized data center, such as Amazon's Elastic Compute Cloud (EC2). We show that Hadoop's scheduler can cause severe performance degradation in heterogeneous environments. We design a new scheduling algorithm, Longest Approximate Time to End (LATE), that is highly robust to heterogeneity. LATE can improve Hadoop response times by a factor of 2 in clusters of 200 virtual machines on EC2.}},
+    address = {Berkeley, CA, USA},
+    author = {Zaharia, Matei and Konwinski, Andy and Joseph, Anthony D. and Katz, Randy and Stoica, Ion},
+    booktitle = {Proceedings of the 8th USENIX conference on Operating systems design and implementation},
+    citeulike-article-id = {8309374},
+    citeulike-linkout-0 = {http://portal.acm.org/citation.cfm?id=1855744},
+    location = {San Diego, California},
+    pages = {29--42},
+    posted-at = {2011-07-31 13:13:26},
+    priority = {2},
+    publisher = {USENIX Association},
+    series = {OSDI'08},
+    title = {{Improving MapReduce performance in heterogeneous environments}},
+    url = {http://portal.acm.org/citation.cfm?id=1855744},
+    year = {2008}
+}
+
+@inbook{HadoopOperationsBook,
+ author = {Sammer, Eric},
+ title = {Hadoop Operations},
+ year = {2012},
+ isbn = {1449327052, 9781449327057},
+ edition = {1st},
+ publisher = {O'Reilly Media, Inc.},
+}
+
+@article{jain98,
+    abstract = {{Fairness is an important performance criterion in all resource allocation
+schemes, including those in distributed computer systems. However, it is often
+specified only qualitatively. The quantitative measures proposed in the
+literature are either too specific to a particular application, or suffer from
+some undesirable characteristics. In this paper, we have introduced a
+quantitative measure called Indiex of FRairness. The index is applicable to any
+resource sharing or allocation problem. It is independent of the amount of the
+resource. The fairness index always lies between 0 and 1. This boundedness aids
+intuitive understanding of the fairness index. For example, a distribution
+algorithm with a fairness of 0.10 means that it is unfair to 90\% of the users.
+Also, the discrimination index can be defined as 1 - fairness index.}},
+    archivePrefix = {arXiv},
+    author = {Jain, R. and Chiu, D. and Hawe, W.},
+    citeulike-article-id = {7916174},
+    citeulike-linkout-0 = {http://arxiv.org/abs/cs/9809099},
+    citeulike-linkout-1 = {http://arxiv.org/pdf/cs/9809099},
+    day = {24},
+    eprint = {cs/9809099},
+    keywords = {fairness},
+    month = sep,
+    posted-at = {2011-09-03 19:48:47},
+    priority = {0},
+    title = {{A Quantitative Measure Of Fairness And Discrimination For Resource Allocation In Shared Computer Systems}},
+    url = {http://arxiv.org/abs/cs/9809099},
+    year = {1998}
+}
+
+@misc{idg,
+  author = {IDG Enterprise},
+  title = {{Research Report on Big Data}},
+  howpublished = "\url{http://www.idgenterprise.com/report/big-data-2}",
+  year = {2015},
+  note = "[Online; accessed 01-June-2015]"
+}
+
+@misc{apachehadoop,
+  author = {Apache},
+  title = {{Apache Hadoop}},
+  howpublished = "\url{http://hadoop.apache.org/}",
+  year = {2015},
+  note = "[Online; accessed 01-June-2015]"
+}
+
+@misc{apachespark,
+  author = {Apache},
+  title = {{Apache Spark}},
+  howpublished = "\url{https://spark.apache.org/}",
+  year = {2015},
+  note = "[Online; accessed 01-June-2015]"
+}
+
+@misc{fio,
+  author = {Jens Axboe},
+  title = {{Flexible I/O Tester}},
+  howpublished = "\url{https://github.com/axboe/fio}",
+  year = {2015},
+  note = "[Online; accessed 01-June-2015]"
+}
