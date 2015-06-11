@@ -99,7 +99,7 @@ Pietro Michiardi
 
 \begin{abstract}
 Bla bla bla bla bla
-
+Keep in mind, this paper is talking about the IMPACTS, and OVERHEAD of VIRTUALIZATION is included in the IMPACTS. -> Make the paper more general and easily for us to integrate fairness metric into the paper.
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -118,13 +118,13 @@ The adoption of virtualization brings many benefits to the technology community.
 
 % Need a glue paragraph here
 
-Measuring the performance of a distributed application is hard, and it is even harder when that application is running on virtualized platform which involving layers and layers of different technologies. Yet the measurement is necessary to have a proper understanding on performance of Big Data applications in the virtualized environment. Figure 1 is an abstract snapshot of a small big data application operating in virtualized environment at a random time. There are n physical servers which host multiple Virtual Machines on each of them. These VMs were set-up to run a big data application which involved many parallel tasks executing in contiguous stages. Those tasks were spawn as threads and concurrently competing for the same resources at each physical host such as disk storage, memory, and CPU,... When looking at the whole picture, we see that the performance of the whole cluster at each stage is depended on the performance of every one of its building block: one single physical host. We would like to see the different in storage I/O performance between virtualization platform and bare-metal system with the big data workloads so we designed a synthesis big data workload and run our measurements with two scenarios for virtualization and one screnario for bare-metal:
+Measuring the performance of a distributed application is hard, and it is even harder when that application is running on virtualized platform which involving layers and layers of different technologies. Yet the measurement is necessary to have a proper understanding on performance of Big Data applications in the virtualized environment. Figure 1 is an abstract snapshot of a small big data application operating in virtualized environment at a random time. There are n physical servers which host multiple Virtual Machines on each of them. These VMs were set-up to run a big data application which involved many parallel tasks executing in contiguous stages. Those tasks were spawn as threads and concurrently competing for the same resources at each physical host such as disk storage, memory, and CPU,... When looking at the whole picture, we see that the performance of the whole cluster at each stage is depended on the performance of every one of its building block: one single physical host. We would like to see the different in storage I/O performance between virtualization platform and bare-metal system with the big data workloads so we designed a synthesis big data workload and run our measurements with two scenarios for virtualization and one scenario for bare-metal:
 \begin{itemize}
 \item Single VM with multiple threads (SVM-MT): this scenario (figure \ref{fig:svm-mt}) represents the case that the host has only one ``fat`` VM but this VM runs many parallel tasks at the same time. This SVM-MT scenario focuses on the guest OS scheduler since it has to switch between active threads. We consider 5 different flavors (sizes) of VM for this scenario to see how the VM's size affects on the performance.
 \item Multiple VMs with single thread (MVM-ST): this scenario (figure \ref{fig:mvm-st}) represents the case that we have many ``slim`` VM and these VMs run only one task at a time inside its guest OS. They are colocated on the same host and they blindly competing for the same I/O resources. This scenario focuses on the hypervisor scheduler since the host has to switch between active VMs.
 \item Bare-metal (BM): the bare-metal system is used as the baseline to make the comparison (figure \ref{fig:bm}). In case the big data application runs on a bare-metal environment, many parallel tasks running at the same time requesting for IO resources. In short, it is similar to the case of SVM-MT without the virtualized layer.
 \end{itemize}
-In this paper, we establish our focus only on the performance of shared storage I/O since it was thought to be one of the main bottle necks of big data application [5]. More specific, we are especially interesting in the performance of big data workload - mainly sequential read and sequential write in parallel issued from concurrent tasks - on the shared storage I/O. We consider I/O throughput as the metric to compare the performance between bare-metal and virtualized platform. We also keep our observation on the fairness of both platforms. The throughput metric expresses how well the system feed data to the threads while fairness keeps threads away from data starvation. Unfairness in treatment between processes creates a heterogeneous environment in which one process can becomes a straggler [\cite{matei08}] and heighten End-Job Time which in the end reduce the responsiveness of the application. We also consider CPU utilization, disk utilization, and the number of context switching in the experiments to "pinpoint" the components which affected most on the performance of shared I/O.
+In this paper, we establish our focus only on the performance of shared storage I/O since it was thought to be one of the main bottlenecks of big data application [5]. More specific, we are especially interesting in the performance of big data workload - mainly sequential read and sequential write in parallel issued from concurrent tasks - on the shared storage I/O. We consider I/O throughput as the metric to compare the performance between bare-metal and virtualized platform. We also keep our observation on the fairness of both platforms. The throughput metric expresses how well the system feed data to the threads while fairness keeps threads away from data starvation. Unfairness in treatment between processes creates a heterogeneous environment in which one process can becomes a straggler [\cite{matei08}] and heighten job completion time which in the end reduce the responsiveness of the application. We also consider CPU utilization, disk utilization, and the number of context switching in the experiments to "pinpoint" the components which affected most on the performance of shared I/O.
 
 % This part talk about the expectation and the result of the paper, need to write it better
 Before the study, our expectation was set on the conclusion of the overhead of virtualization on big data application workload. One part of our study repeats the findings of previous studies which show that, with proper tuning, virtualization can only reach maximum 80-90\% of bare metal performance due to the overhead that the added virtualization layer brought up. Previous studies reveal the performance of the system consider little about the different in level of concurrency and they also did not consider the big-data-application-like workload. Our studies reveal the big picture when there are different number of active threads concurrently competing for I/O. We consider three difference schedulers on the host: Noop, Deadline,and Scheduler and show the different behaviors of the baremetal and the virtualized platform in IO performance when using one scheduler. It is unexpected that using Deadline and Noop scheduler, Bare-metal can get less throughput than the VM that it hosts when level of concurrency is high. For CFQ scheduler, Bare-metal have good throughput and change little when there are many active threads executing but the VMs can get only 40\% of the total throughput that a Bare-metal can get. We see that both virtualized and bare-metal platform achieve high fairness index. There is no or very little different between bare-metal and virtualized platform in fairness index.
@@ -172,6 +172,10 @@ Is it worthy to trade performance for virtualization benefits (resource consolid
 Adding layers of complexity: 
 - Extended Page Tables (EPT) add a level of address translation for guest physical memory. Guest memory address -> Guest Page Table -> Host Page Table -> Physical memory
 - VM management: Switching between VMs, host hardware access and resource management  
+
+elasticity
+multi-tenancy
+improving resource utilization
 
 Given the knowledge about performance bottlenecks and eventual overheads of virtualization, we can clear the myths about performance of Big Data on virtualized platform. We can also inform the users to select the best strategy for them when installed Big Data Application on the cloud respecting to optimizing the I/O performance.
 
@@ -286,17 +290,60 @@ Where:
   \item \textbf{ioengine} is \texttt{libaio} which indicates the application to use AIO (Asynchronous Linux I/O) subsystem. AIO helps to overlaps processing with I/O Operations. Application can submit (batch of) I/O operation without waiting for completion. This benefits physical I/O in particular when prefetching data. Besides, it allows to accumulate read or write requests so that the I/O subsystem can optimize performance by grouping or reordering the IO requests in favor of sequential access and large request. It helps to separate calls for submission and completion indication and pipelines operations to improve throughput. It also helps to improved utilization of CPU and devices.
 \end{itemize}
 
-\subsection{The performance/overheads metrics}
+\subsection{The metrics}
 
-During these measurements all VMs were using logical volumes created on the same physical hard disk. Physical CPU cores are not reserved for each VM, but during measurements there was enough spare capacity available to guarantee that each VM had enough cores (as configured by the VM flavor) available for its exclusive use.
+During these measurements all VMs were using logical volumes created on the same physical hard disk. Physical CPU cores are not reserved for each VM, but during measurements there was enough spare capacity available to guarantee that each VM had enough cores (as configured by the VM flavor) available for its exclusive use. We run our measurement 10 times, for each run we collect the aggregated throughput of all threads and calculate the aggregated throughput. All of our figures was plotted with 95\% of confident interval.
+% Increase to 20 times later, remember to fix.
 
 \paragraph{Aggregated Throughput}
-We considered the aggregated throughput is a good metrics to compare the scenarios. We run our measurement 10 times, for each run we collect the aggregated throughput of all threads and calculate the aggregated throughput. All of our figures was plotted with 95\% of confident interval.
+  We considered the aggregated throughput is a good metrics to compare the scenarios. %explain more
 
 \paragraph{Jain Fairness Index}
   To evaluate fairness, we rely on the Jain Fairness Index \ref{jain}, which is defined as
   $$JFI={({\sum}_{i}x_{i})^{2}\over n{\sum}_{i}x_{i}^{2}}$$
   where $x_{i}$ is the average throughput of the $i^th$ flow and $n$ the number of parallel threads. It features interesting properties when one wants to assess the fairness of a system. If all samples (throughput values in our case) are equal, the Jain Fairness index is simply 1, which is its maximal possible value. Also, the minimal value of the JFI is $\frac{1}{n}$. JFI is very important because its can cause stragglers in big data application. Straggler is created when a task does not receive the same amount of data as other tasks, it cannot perform its task and let the whole execution process to wait for its result. This increase the completion time of the whole job.
+  
+\paragraph{CPU utilization}
+
+We collect CPU utilization information from two perspective: at the VM perspective and at the host perspective. In particular, at the VM, we rely on the output information extracted from FIO result. At the host, we dump the CPU utilization for our test instance every second with ``top`` command.
+
+FIO relies on getrusage(). Getrusage() returns resource usage statistics for the calling thread. The resource usages are returned in the structure pointed by the usage caller, which has the following form:
+
+\begin{lstlisting}
+struct rusage {
+    struct timeval ru_utime; // user CPU time used
+    struct timeval ru_stime; // system CPU time used
+    ...
+    long   ru_minflt;  // page reclaims (soft page faults)
+    long   ru_majflt;  // page faults (hard page faults)
+    long   ru_nswap;   // swaps
+    ...
+    long   ru_nvcsw;   // voluntary context switches
+    long   ru_nivcsw;  // involuntary context switches
+};
+\end{lstlisting}
+
+and contained inside the struct are:
+
+\begin{itemize}
+  \item \textit{ru\_utime}: This is the total amount of time spent executing in user mode, expressed in a timeval structure (seconds plus microseconds).
+  \item \textit{ru\_stime}: This is the total amount of time spent executing in kernel mode, expressed in a timeval structure (seconds plus microseconds).
+  \item \textit{ru\_nvcsw}: The number of times a context switch resulted due to a process voluntarily giving up the processor before its time slice was completed (usually to await availability of a resource).
+  \item \textit{ru\_nivcsw}: The number of times a context switch resulted due to a higher priority process becoming runnable or because the current process exceeded its time slice.
+  \item \textit{run\_time}: The duration from the time that thread starts until the time that thread finishes or the wall lock time.
+\end{itemize}
+
+FIO reports the CPU utilization for each thread by $\frac{ru\_utime}{run\_time}$ and $\frac{ru\_stime}{run\_time}$. However, we are more interested in the serving time (the time that thread actually uses the CPU) and the waiting time (the time that thread has to wait for the others until its slice is up).
+\begin{lstlisting}
+    serving_time = ru_utime + ru_stime
+    waiting_time = run_time - serving_time
+\end{lstlisting}
+
+\paragraph{Disk utilization}
+For disk utilization, we also collect from 2 sources. At the VM, we used the extracted information from FIO output. At the host, we use ``iostat`` to dump the disk utilization every second. % explain more on why we see the information at two perspective
+
+\paragraph{Context Switches}
+Mention about the cost of context switch in virtualization and why we should consider this.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -392,40 +439,8 @@ To explain for the result that we got, we have ask ourselves many questions:
 
 \paragraph{CPU utilization}
 
-For CPU utilization, FIO relies on getrusage(). Getrusage() returns resource usage statistics for the calling thread. The resource usages are returned in the structure pointed by the usage caller, which has the following form:
 
-\begin{lstlisting}
-struct rusage {
-    struct timeval ru_utime; // user CPU time used
-    struct timeval ru_stime; // system CPU time used
-    ...
-    long   ru_minflt;  // page reclaims (soft page faults)
-    long   ru_majflt;  // page faults (hard page faults)
-    long   ru_nswap;   // swaps
-    ...
-    long   ru_nvcsw;   // voluntary context switches
-    long   ru_nivcsw;  // involuntary context switches
-};
-\end{lstlisting}
-
-and contained inside the struct are:
-
-\begin{itemize}
-  \item \textit{ru\_utime}: This is the total amount of time spent executing in user mode, expressed in a timeval structure (seconds plus microseconds).
-  \item \textit{ru\_stime}: This is the total amount of time spent executing in kernel mode, expressed in a timeval structure (seconds plus microseconds).
-  \item \textit{ru\_nvcsw}: The number of times a context switch resulted due to a process voluntarily giving up the processor before its time slice was completed (usually to await availability of a resource).
-  \item \textit{ru\_nivcsw}: The number of times a context switch resulted due to a higher priority process becoming runnable or because the current process exceeded its time slice.
-  \item \textit{run\_time}: The duration from the time that thread starts until the time that thread finishes or the wall lock time.
-\end{itemize}
-
-FIO reports the CPU utilization for each thread by $\frac{ru\_utime}{run\_time}$ and $\frac{ru\_stime}{run\_time}$. However, we are more interested in the serving time (the time that thread actually uses the CPU) and the waiting time (the time that thread has to wait for the others until its slice is up).
-\begin{lstlisting}
-    serving_time = ru_utime + ru_stime
-    waiting_time = run_time - serving_time
-\end{lstlisting}
-
-\paragraph{Context switching between scenarios}
-Bla bla bla
+\paragraph{Context switching}
 \begin{figure*}[t]
    \centering
    \begin{subfigure}[b]{0.3\textwidth}
@@ -470,6 +485,8 @@ Bla bla bla
    \caption{Number of context switchings with the three I/O schedulers}\label{fig:contextswitching}
 \end{figure*}
 
+Context Switching (as seen in figure \ref{fig:contextswitching}) is not affected by the I0 schedulers, but looking at coherent between the Aggregated throughput and the number context switch, we see that the more context switching happen, the lower throughput a VM can have. VM with 1 or 2 cores switch 2 times more than VM with 4 and 8 cores. We also see that increasing number of cores to 16 does not reduce the number of context switchings.
+
 \subsection{Jain Fairness Index}
 In our experiments, for all the I/O schedulers and platforms. Fairness index is very high. Fairness may not show much the different between bare-metal and virtualization in term of performance, but why did we select it as a metric for the comparison? Because fairness has big impacts on Big Data application. Whenever a task is not received the same amount of data as other tasks, it will become a straggler \ref{matei08}. In the context of big data application, a straggler is very bad. 1) For Hadoop and Spark, in particular, the slowest task determines the overall job completion time. Straggler causes the whole execution to wait for some slow tasks before it can finish and return the results. 2) Many systems like Hadoop and Spark deploy task speculation. This is an optimization technique to performs some tasks that may not be actually needed. The main idea is to run a task before it is known whether the results of that task will be needed, so as to prevent a delay incurred by re-run that task after it is known whether it is needed. If it turns out the work was not needed after all, any result produced by the speculative tasks is ignored. If we have a fair system, we can avoid wasting resources for the speculative tasks.
  
@@ -495,7 +512,7 @@ By using a synthesis workload mimic from a MapReduce-like application, we reveal
   \item For sequential write workload, we showed that the virtualized platform lose 15-30\% in compare with the bare-metal. Both platform are affected greatly by the caching technique that deploy on the RAID controller. In details, Write-back and Write-through cache play important role in the performance of sequential writing for both the bare-metal and the virtualized platform. For Hadoop-like workload, user should use write-back cache since it's perform well with data intensive workload.
 \end{itemize}
 
-We believe that the result from this work can help the communities to have deeper understanding on the performance of virtualization when they need to deploy Big Data application on the cloud. However, this is just the first part in a continuation research which studies on the impacts of virtualization on Data Intensive Analysis Framework in which there are two most popular representatives: Hadoop and Spark. Those application performance can be bounded by network, disk I/O, or CPU performance. In this paper, we focus on and only on disk I/O and it is the limitation of our work. This work is still limited in explaining the insides that cause the seperated performance between VM flavors. We also avoid memory and CPU over-commit which is happen often happen when using virtualization technology. Performance of Big Data application is not only depended on storage I/O performance, but if one component is better, the whole process should be better. In future, we would like to see how the I/O performance was seen from the perspective of the big data application (such as Hadoop or Spark). From then we can prove the correctness of our synthesis workload design.
+We believe that this work gives deeper understanding on the impacts of virtualization Big Data application workload. However, this is just the first part in a continuation research which studies on the impacts of virtualization on Data Intensive Analysis Framework in which there are two most popular representatives: Hadoop and Spark. Those application performance can be bounded by network, disk I/O, or CPU performance. In this paper, we focus on and only on disk I/O and it is the limitation of our work. This work is still limited in explaining the insides that cause the seperated performance between VM flavors. We also avoid memory and CPU over-commit which is happen often happen when using virtualization technology. Performance of Big Data application is not only depended on storage I/O performance, but if one component is better, the whole process should be better. In future, we would like to see how the I/O performance was seen from the perspective of the big data application (such as Hadoop or Spark). From then we can prove the correctness of our synthesis workload design.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
