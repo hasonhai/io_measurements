@@ -1,14 +1,14 @@
 #!/bin/bash
 appdir="/home/sonhai/io_measurements/measurement_script"
 DEVICE="sdj"
-SCHEDULER="dealine"
+SCHEDULER="deadline"
 OUTPUTDIR="bigfoot12_cache_deadline_v2"
-if [ -d $appdir/$OUTPUTDIR ]; then
+if [ ! -d $appdir/$OUTPUTDIR ]; then
     mkdir -p $appdir/$OUTPUTDIR
 fi
 
 echo "Select scheduler: $SCHEDULER"
-echo deadline | sudo tee /sys/block/$DEVICE/queue/scheduler
+echo $SCHEDULER | sudo tee /sys/block/$DEVICE/queue/scheduler
 
 #for test in 1 2 4 8 16 32;
 for test in 32; #only do test with case of full 32 cores online
@@ -23,7 +23,7 @@ do
     
     # Run test
     NoCore="$test"
-    $appdir/bigfoot16procstest.sh $NoCore
+    $appdir/bm16test.sh $NoCore
     padtowidth=2
     NoCore=$( printf "%0*d" $padtowidth $NoCore )
     mv $appdir/Bigfoot${NoCore}CoreSeq* $appdir/$OUTPUTDIR/

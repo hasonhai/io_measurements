@@ -1,19 +1,20 @@
 #!/bin/sh
 appdir="/home/sonhai/io_measurements/measurement_script"
 DEVICE="sda"
-SCHEDULER="dealine"
+SCHEDULER="deadline"
 OUTPUTDIR="bigfoot12_cache_deadline_v2"
-if [ -d $appdir/$OUTPUTDIR ]; then
+if [ ! -d $appdir/$OUTPUTDIR ]; then
     mkdir -p $appdir/$OUTPUTDIR
 fi
 
 echo "Select scheduler: $SCHEDULER"
-echo deadline | sudo tee /sys/block/$DEVICE/queue/scheduler
+echo $SCHEDULER | sudo tee /sys/block/$DEVICE/queue/scheduler
 
 now="$(date +'%m%d%Y')"
 echo 1-core vm
 nova start vm1core
 sleep 180
+# Try turn-off huge page to see the effect
 ./svm16test.sh OneCore > log_vm01core$now
 sleep 10
 nova stop vm1core

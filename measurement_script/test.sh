@@ -14,7 +14,7 @@ fi
 
 if [ $6 ]; then
     echo "CPU utilization recoder is enable on $6"
-    if [ $6 = "VM" ]; then
+    if [ "$6" = "VM" ]; then
         TRACK_PROCESS="qemu-system-x86" # for VM
     else
         TRACK_PROCESS="fio" # for host
@@ -41,9 +41,10 @@ if [ $5 ]; then
     iostat_id=$( jobs -p %1 )
     echo iostat ID is ${iostat_id}
 fi
+# error with bare metal because fio haven't start before grep its pid, maybe move to after disktest run 
 if [ $6 ]; then    
     echo '  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND' > usage.cpustat
-    top -p $(pgrep -d',' $TRACK_PROCESS) -d 1 -b | grep qemu >> usage.cpustat &
+    top -p $(pgrep -d',' "$TRACK_PROCESS") -d 1 -b | grep "$TRACK_PROCESS" >> usage.cpustat &
     top_id=$( jobs -p %2 )
     echo top ID is ${top_id}
 fi
