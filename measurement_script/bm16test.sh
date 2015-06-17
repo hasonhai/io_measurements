@@ -12,9 +12,9 @@ else
     NumCore=$( printf "%0*d" $padtowidth $1 )
 fi
 
-for i in 01; do
-  for numthread in 1thread; do
-    for accesspat in SeqRead; do
+for i in 01 02 03; do
+  for numthread in 1thread 2thread 4thread 8thread 16thread; do
+    for accesspat in SeqRead SeqWrite; do
 
       if [ "$accesspat" = "SeqRead" ]; then fileconf="read"; fi
       if [ "$accesspat" = "SeqWrite" ]; then fileconf="write"; fi

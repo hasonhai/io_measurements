@@ -42,15 +42,26 @@ if [ $5 ]; then
     echo iostat ID is ${iostat_id}
 fi
 # error with bare metal because fio haven't start before grep its pid, maybe move to after disktest run 
-if [ $6 ]; then    
+if [ "$6" = "VM" ]; then
+    echo Run top to collect CPU utilization on $6    
     echo '  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND' > usage.cpustat
     top -p $(pgrep -d',' "$TRACK_PROCESS") -d 1 -b | grep "$TRACK_PROCESS" >> usage.cpustat &
     top_id=$( jobs -p %2 )
     echo top ID is ${top_id}
 fi
+
 for HOST in $HOSTLIST; do
     ./disktest.sh $CONF $USER $KEY $HOST run &
 done
+
+if [ "$6" = "HOST" ]; then
+    sleep 3
+    echo Run top to collect CPU utilization on $6  
+    echo '  PID USER      PR  NI    VIRT    RES    SHR S  %CPU %MEM     TIME+ COMMAND' > usage.cpustat
+    top -p $(pgrep -d',' "$TRACK_PROCESS") -d 1 -b | grep "$TRACK_PROCESS" >> usage.cpustat &
+    for job in `jobs -p`; do top_id=$job; done
+    echo top ID is ${top_id}
+fi
 
 # Wait for all hosts to complete
 FAIL=0
