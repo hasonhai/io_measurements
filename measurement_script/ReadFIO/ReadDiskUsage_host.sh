@@ -12,10 +12,14 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
     if [ -d $RESULTDIR/${PLATFORM}${TESTTYPE}${NUMTHREAD}thread${TESTNO} ]; then
         cd $RESULTDIR/${PLATFORM}${TESTTYPE}${NUMTHREAD}thread${TESTNO}
         # echo ${PLATFORM}${TESTTYPE}${NUMTHREAD}thread0${TESTNO}
-        if [ "$PLATFORM" = "Bigfoot32Core" ]; then
-            DISKUSAGE=$( cat *.diskout | grep ';sequential' | cut -d';' -f139 --output-delimiter=' ' )
+        if [ "$TESTTYPE" = "SeqRead" ]; then
+            cat *.diskstat | grep "sd" | tail -n +3 | head -n -1 | awk '{ if ($6 > 100 ) print }' > dataclean.tmp
+            DISKUSAGE=$( cat dataclean.tmp | grep "sd" | awk '{ sum += $NF; n++ } END { if (n > 0) print sum / n; }' )
+            rm dataclean.tmp
         else
-            DISKUSAGE=$( cat *.diskout | grep ';sequential' | cut -d';' -f130 --output-delimiter=' ' )
+            cat *.diskstat | grep "sd" | tail -n +3 | head -n -1 > dataclean.tmp #remove first 3 lines and last 1 line
+            DISKUSAGE=$( cat dataclean.tmp | grep "sd" | awk '{ sum += $NF; n++ } END { if (n > 0) print sum / n; }' )
+            rm dataclean.tmp
         fi
 
     case $PLATFORM in
@@ -44,17 +48,7 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
     esac
 
     if [ "$PLATFORM" = "Bigfoot32Core" -o "$PLATFORM" = "Bigfoot16Core" -o "$PLATFORM" = "Bigfoot08Core" -o "$PLATFORM" = "Bigfoot04Core" -o "$PLATFORM" = "Bigfoot02Core" -o "$PLATFORM" = "Bigfoot01Core" -o "$PLATFORM" = "OneVMOneCore" -o "$PLATFORM" = "OneVMTwoCore" -o "$PLATFORM" = "OneVMFourCore" -o "$PLATFORM" = "OneVMEightCore" -o "$PLATFORM" = "OneVM16Core" ]; then
-        if [ "$NUMTHREAD" = "1" ]; then
-            du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
-        elif [ "$NUMTHREAD" = "2" ]; then
-            du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
-        elif [ "$NUMTHREAD" = "4" ]; then
-            du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
-        elif [ "$NUMTHREAD" = "8" ]; then
-            du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN"
-        elif [ "$NUMTHREAD" = "16" ]; then
-            du="$DISKUSAGE"
-        fi
+        du="$DISKUSAGE"
     else
         if [ "$PLATFORM" = "TwoVMOneCore" ]; then
             du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
