@@ -12,7 +12,7 @@ else
     NumCore=$( printf "%0*d" $padtowidth $1 )
 fi
 
-for i in 01 02 03; do
+for i in 01 02 03 04 05 06 07 08 09 10; do
   for numthread in 1thread 2thread 4thread 8thread 16thread; do
     for accesspat in SeqRead SeqWrite; do
 
