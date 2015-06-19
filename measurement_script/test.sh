@@ -50,9 +50,16 @@ if [ "$6" = "VM" ]; then
     echo top ID is ${top_id}
 fi
 
-for HOST in $HOSTLIST; do
+if [ "$7" == "SSHLESS" ]; then
+  for HOST in $HOSTLIST; do
+    ./disktest_sshless.sh $CONF $USER $KEY $HOST run &
+  done
+else
+  for HOST in $HOSTLIST; do
     ./disktest.sh $CONF $USER $KEY $HOST run &
-done
+  done
+
+fi
 
 if [ "$6" = "HOST" ]; then
     sleep 3
