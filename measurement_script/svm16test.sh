@@ -20,7 +20,7 @@ case $VMSPEC in
     VMSPEC="OneCore";;
 esac
 
-for i in 06 07 08 09 10 11 12 13 14 15; do
+for i in 01 02 03 04 05 06 07 08 09 10; do
 
 time ./test.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-test.fio $VMADD $DEVICE VM
 mv ${DEVICE}.diskstat testout/OneVM${VMSPEC}SeqRead1thread${i}.diskstat

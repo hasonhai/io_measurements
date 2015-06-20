@@ -2,7 +2,7 @@
 appdir="/home/sonhai/io_measurements/measurement_script"
 DEVICE="sda"
 SCHEDULER="deadline"
-OUTPUTDIR="bigfoot12_cache_deadline_v2"
+OUTPUTDIR="bigfoot12_cache_deadline_sync"
 if [ ! -d $appdir/$OUTPUTDIR ]; then
     mkdir -p $appdir/$OUTPUTDIR
 fi
@@ -42,13 +42,14 @@ sleep 180
 ./svm16test.sh 16Core > log_vm16core$now
 sleep 10
 nova stop vm16core
-#echo 16 vms
-#for vm in $( cat OpenStack/vmsmalllist ); do echo starting vm $vm; nova start $vm; done
-#sleep 300
-#./mvm16test.sh > log_16vms$now
-#sleep 10
-#for vm in $( cat OpenStack/vmsmalllist ); do echo stopping vm $vm; nova stop $vm; done
 
-mv OneVM* $appdir/$OUTPUTDIR/
-#TODO: mv output directory of mvm also
+echo 16 vms
+for vm in $( cat OpenStack/vmsmalllist ); do echo starting vm $vm; nova start $vm; done
+sleep 300
+./mvm16test.sh > log_16vms$now
+sleep 10
+for vm in $( cat OpenStack/vmsmalllist ); do echo stopping vm $vm; nova stop $vm; done
+
+mv *VM*Seq*thread* $appdir/$OUTPUTDIR/
+
 echo 'Hi, all the tests are done!' | mail -s "Test is finish!" hasonhai124@gmail.com

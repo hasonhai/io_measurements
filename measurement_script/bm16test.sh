@@ -1,8 +1,8 @@
 #!/bin/bash
-ACCESSKEY="/home/sonhai/sonhai_bigstack01.pem"
+ACCESSKEY="/home/sonhai/cloudbf12.pem"
 USERNAME="sonhai"
-BFADD="/home/sonhai/bigstack.address"
-DEVICE="sda"
+BFADD="testdir/Bigfoot.lst"
+DEVICE="sdj"
 
 # Number of enabled core in the test
 if [ "$1" = "" ]; then
@@ -12,7 +12,7 @@ else
     NumCore=$( printf "%0*d" $padtowidth $1 )
 fi
 
-for i in 01 02 03 04 05; do
+for i in 01 02 03 04 05 06 07 08 09 10; do
   for numthread in 1thread 2thread 4thread 8thread 16thread; do
     for accesspat in SeqRead SeqWrite; do
 

@@ -4,7 +4,7 @@
 rw=read
 size=1g
 directory=/home/ubuntu/fiodata
-ioengine=libaio
+ioengine=sync
 direct=1
-iodepth=256 
+iodepth=128 
 numjobs=1

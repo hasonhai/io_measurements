@@ -2,7 +2,7 @@
 appdir="/home/sonhai/io_measurements/measurement_script"
 DEVICE="sdj"
 SCHEDULER="deadline"
-OUTPUTDIR="bigfoot12_cache_deadline_v2"
+OUTPUTDIR="bigfoot12_cache_deadline_sync"
 if [ ! -d $appdir/$OUTPUTDIR ]; then
     mkdir -p $appdir/$OUTPUTDIR
 fi
