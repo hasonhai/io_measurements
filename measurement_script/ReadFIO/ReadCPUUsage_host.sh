@@ -12,8 +12,23 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
     if [ -d $RESULTDIR/${PLATFORM}${TESTTYPE}${NUMTHREAD}thread${TESTNO} ]; then
         cd $RESULTDIR/${PLATFORM}${TESTTYPE}${NUMTHREAD}thread${TESTNO}
         # echo ${PLATFORM}${TESTTYPE}${NUMTHREAD}thread0${TESTNO}
-        if [ "$TESTTYPE" = "SeqRead" ]; then
-            CPUUSAGE=$( cat *cpustat | tail -n +2 | awk '{ sum += $9; n++ } END { if (n > 0) print sum / n; }' )
+        if [ "$PLATFORM" = "TwoVMOneCore" -o "$PLATFORM" = "FourVMOneCore" -o "$PLATFORM" = "EightVMOneCore" -o "$PLATFORM" = "SixteenVMOneCore" ]; then
+            cat *.cpustat | tail -n +2 |  awk '{ print $1 }' | sort | uniq | sed '/^$/d' > id.tmp
+            if [ "$( wc -l id.tmp | awk '{ print $1 }' )" = "0" ]; then 
+              # echo "Number of processes: $( wc -l id.tmp )"
+              rm id.tmp
+              continue 
+            fi
+            for id in $( cat id.tmp ); do
+              grep "$id " *.cpustat > ${id}.cpu # seperate cpu info for each instance
+              # calculate average throughput
+              CPUUSAGE=$( cat ${id}.cpu | tail -n +2 | awk '{ sum += $9; n++ } END { if (n > 0) print sum / n; }' )
+              AGGCPUUSAGE=$( echo "$AGGCPUUSAGE $CPUUSAGE" )
+              rm ${id}.cpu
+            done
+            CPUUSAGE=$AGGCPUUSAGE
+            AGGCPUUSAGE=""
+            rm id.tmp
         else
             CPUUSAGE=$( cat *cpustat | tail -n +2 | awk '{ sum += $9; n++ } END { if (n > 0) print sum / n; }' )
         fi
@@ -47,12 +62,16 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         cpuu="$CPUUSAGE"
     else
         if [ "$PLATFORM" = "TwoVMOneCore" ]; then
-            cpuu="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
+            CPUUSAGE=$( echo "$CPUUSAGE" | sed 's/ /\n/g' | sort -V -r | head -n +2 | awk '{ sum += $1 } END { print sum }' )
+            cpuu="$CPUUSAGE"
         elif [ "$PLATFORM" = "FourVMOneCore" ]; then
-            cpuu="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
+            CPUUSAGE=$( echo "$CPUUSAGE" | sed 's/ /\n/g' | sort -V -r | head -n +4 | awk '{ sum += $1 } END { print sum }' )
+            cpuu="$CPUUSAGE"
         elif [ "$PLATFORM" = "EightVMOneCore" ]; then
-            cpuu="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN"
+            CPUUSAGE=$( echo "$CPUUSAGE" | sed 's/ /\n/g' | sort -V -r | head -n +8 | awk '{ sum += $1 } END { print sum }' )
+            cpuu="$CPUUSAGE"
         elif [ "$PLATFORM" = "SixteenVMOneCore" ]; then
+            CPUUSAGE=$( echo "$CPUUSAGE" | sed 's/ /\n/g' | sort -V -r | awk '{ sum += $1 } END { print sum }' )
             cpuu="$CPUUSAGE"
         fi
     fi      

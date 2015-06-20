@@ -47,19 +47,6 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         *) P="Unknown";;
     esac
 
-    if [ "$PLATFORM" = "Bigfoot32Core" -o "$PLATFORM" = "Bigfoot16Core" -o "$PLATFORM" = "Bigfoot08Core" -o "$PLATFORM" = "Bigfoot04Core" -o "$PLATFORM" = "Bigfoot02Core" -o "$PLATFORM" = "Bigfoot01Core" -o "$PLATFORM" = "OneVMOneCore" -o "$PLATFORM" = "OneVMTwoCore" -o "$PLATFORM" = "OneVMFourCore" -o "$PLATFORM" = "OneVMEightCore" -o "$PLATFORM" = "OneVM16Core" ]; then
-        du="$DISKUSAGE"
-    else
-        if [ "$PLATFORM" = "TwoVMOneCore" ]; then
-            du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
-        elif [ "$PLATFORM" = "FourVMOneCore" ]; then
-            du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN"
-        elif [ "$PLATFORM" = "EightVMOneCore" ]; then
-            du="$DISKUSAGE NaN NaN NaN NaN NaN NaN NaN NaN"
-        elif [ "$PLATFORM" = "SixteenVMOneCore" ]; then
-            du="$DISKUSAGE"
-        fi
-    fi      
     cd $RESULTDIR
     # echo -e "${AP}${P}TH${NUMTHREAD}T${TESTNO}\t${du}"
     # Convert NUMTHREAD to same number of digit
@@ -71,7 +58,7 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         16) TH="16";;
         *) P="Unknown";;
     esac
-    echo ${AP}${P}TH${TH}T${TESTNO} $du
+    echo ${AP}${P}TH${TH}T${TESTNO} $DISKUSAGE
     fi
 done
 done
