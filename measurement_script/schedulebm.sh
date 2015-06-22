@@ -1,8 +1,8 @@
 #!/bin/bash
 appdir="/home/sonhai/io_measurements/measurement_script"
 DEVICE="sdj"
-SCHEDULER="deadline"
-OUTPUTDIR="bigfoot12_cache_deadline_sync"
+SCHEDULER="cfq"
+OUTPUTDIR="bigfoot12_cache_cfq_sync"
 if [ ! -d $appdir/$OUTPUTDIR ]; then
     mkdir -p $appdir/$OUTPUTDIR
 fi
