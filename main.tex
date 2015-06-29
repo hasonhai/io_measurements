@@ -134,13 +134,13 @@ In the next sections, we introduce to our readers the methodologies in detail. W
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background and Related Work}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{itemize}
-  \item introduce some related works on the performance of virtualization: work from IBM on performance of KVM, work from a guy discussing the relevant of IO schedulers to virtualization system.
-  \item introduce some related works on measuring performance of data intensive application
- \item then mention about the combined of both, what we are different from previous works, what are our interesting points.
-\end{itemize}
+%\begin{itemize}
+%  \item introduce some related works on the performance of virtualization: work from IBM on performance of KVM, work from a guy discussing the relevant of IO schedulers to virtualization system.
+%  \item introduce some related works on measuring performance of data intensive application
+% \item then mention about the combined of both, what we are different from previous works, what are our interesting points.
+%\end{itemize}
 
-In the Big Data world, data volume is too big that people avoiding moving it. With the belief that network is the bottleneck of the distributed systems, the developers try to work around by moving the execution/programs to the data but not the other way round (like Hadoop or Spark). By such method of task distributing, the burden was shifted to storage I/O (disk and memory) performance. A typical example is Hadoop with data-locality awareness. It reported achieving greater throughput when utilising data locality[?-?]. But then it makes disk I/O become the bottle-neck. Data was read from disk, intermediate data was stored on disk, and results were written to disk. Spark has done a step further, when they leverage memory to use together with the disk, Spark reported the performance improvement up to severalfold in comparing to Hadoop with data locality awareness [?]. However, memory and cache sharing was not developed well enough to also provide fault tolerant to other big data applications but Spark. Then people use data compressing techniques to trade CPU resource for storage I/O performance. But then CPU becomes the bottle-neck [?]. The simplest model is the most efficient model. That is why many data intensive applications are still greatly depended on the hard drive performance since the developers and the administrators do not want to complicate a distributed system.
+
 
 % Summary disk_schedulers_passe
 %
@@ -155,7 +155,7 @@ In the Big Data world, data volume is too big that people avoiding moving it. Wi
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Problem statement}
 
-Given the facts that virtualization improves resource utilization and enable elasticity and multi-tenancy. Yet it also brings the disadvantages. On the architecture viewpoint, virtualization brings the ``Seeing double`` problem. There may be two file systems. The guest file system and the host file system which holds the image file. There may be two volume managers. Logical volume manager at the guest and logical volume manager at the host. There may be two page caches. Both guest and host can buffer pages from a file. There may be two I/O schedulers. The guest will reorder or delay I/O and the host will too. All of this add latencies and bottleneck at different places to IO performance.
+Given the facts that virtualization improves resource utilization and enable elasticity and multi-tenancy. Yet it also brings the disadvantages. On the architecture viewpoint, virtualization brings the ``Seeing double`` problem. There may be two file systems. The guest file system and the host file system which hold the image file. There may be two volume managers. Logical volume manager at the guest and logical volume manager at the host. There may be two page caches. Both guest and host can buffer pages from a file. There may be two I/O schedulers. The guest will reorder or delay I/O and the host will too. All of this add latencies and bottleneck at different places to IO performance.
 
 When running data intensive application in virtualized environment, the situation is worse. There is not only ``seeing double`` problem, but also the competing between VMs sharing the same resources. Many VMs can be located on the same hard drive. They can also use the same network card to communicate with other VMs. In order to utilise data locality characteristic, the VM were setup to operate on local hard drives and it creates a situation in which many concurrently processes competing for IO resources when the distributed application processing massive data input and output.
 
@@ -181,13 +181,13 @@ Our system runs on a dual hexa-core Xeon E5-2650L (with hyperthreading enabled) 
     \caption{\textit{The path of the I/O request }}
     \label{iopath}
   \end{figure}
- 
+
   When a VM is created, QEMU (the userspace process that performs most device emulation and controls the guest) creates a process and forks a number of vCPU threads associating with same number of virtual cpu that the VM was allocated. These dedicated vcpu threads use the kvm.ko module in the kernel to execute guest code. Besides, the ``iothread`` thread is created for handling IO for this virtual machine. There is an I/O thread that runs a select loop to handle events. Only one thread may be executing QEMU code at any given time.
 
   Application and guest kernel work similar to bare metal. Guest talks to QEMU via emulated hardware. QEMU performs I/O to an image file on behalf of the guest. Host kernel treats guest I/O like any user space application. QEMU presents emulated storage interfaces to the guest. Virtio is a paravirtualized storage interface, delivers the best performance. One virtio-blk PCI adapter per block device.
-  
+
   At the guest or the host, applications submit I/O requests via a kernel system call, that converts them into a data structure called a block IO. Each block IO contains information such as IO address, IO size, IO modality (read or write) or IO type (synchronous/asynchronous). It is then transferred to either libaio for asynchronous IOs or directly to the block layer for synchronous IO that submit it to the block layer. Once an IO request is submitted, the corresponding block IO is buffered in the staging area, which is implemented as a request queue. Once a request is in the staging area, the block layer may perform IO scheduling and adjust accounting information before scheduling IO submissions to the appropriate storage device driver. Linux block layer supports pluggable IO schedulers: noop (no scheduling), deadline-based scheduling, and CFQ that can all operate on IO within this staging area. The block layer also provides a mechanism for dealing with IO completions: each time an IO completes within the device driver, this driver calls up the stack to the generic completion function in the block layer. In turn the block layer then calls up to an IO completion function in the libaio library, or returns from the synchronous read or write system call, which provides the IO completion signal to the application.
-  
+
   Between the guest and the host, The I/O requests were delivered thanks to the simulated device. Guest I/O request was issued to the virtual device. This device then fills in the request descriptors which is then written to virtio-blk virtqueue notify register. QEMU issues I/O request on behalf of the guest to just like any other application. After the data was arrive at QEMU buffer. QEMU fills in request footer and injects completion interupt to guest kernel. Guest receives the interrupt and executes handler. It then reads data from the buffer.
 
   \subsubsection{Linux IO Schedulers}
@@ -220,7 +220,7 @@ Our system runs on a dual hexa-core Xeon E5-2650L (with hyperthreading enabled) 
 \end{figure}
 
   QEMU executes as a device simulator for guest OS. It is implemented with 4 types of cache techniques. The cache space used is the host's page cache. By loading the VM image with 4 different combinations of the control flags: O\_DIRECT and O\_SYNC, QEMU effectively provides 4 different cache techniques to the guest.
-  
+
 \begin{itemize}
  \item \textbf{none}: host does not do cache, guest disk cache is writeback. This mode causes QEMU to interact with the disk image file or block device with O\_DIRECT semantics, so the host page cache is bypassed and I/O happens directly between the QEMU userspace buffers and the storage device. Because the actual storage device may report a write as completed when placed in its write queue only, the guest's virtual storage adapter is informed that there is a writeback cache, so the guest would be expected to send down flush commands as needed to manage data integrity. Equivalent to direct access to the host's disk.
  \item \textbf{writethrough}: host does read cache, guest disk cache mode is writethrough. Writethrough make a fsync for each write. So it's the more secure cache mode, you can't loose data. It's also the slower. This mode causes QEMU to interact with the disk image file or block device with O\_SYNC semantics, where writes are reported as completed only when the data has been committed to the storage device. The host page cache is used in what can be termed a writethrough caching mode. The guest's virtual storage adapter is informed that there is no writeback cache, so the guest would not need to send down flush commands to manage data integrity. The storage behaves as if there is a writethrough cache.
@@ -300,9 +300,9 @@ We define our workload via the job configuration file of FIO. Our sample configu
 
 Where:
 \begin{itemize}
-  \item \textbf{rw} defines the kind of disk access pattern: read (sequential reads), write (sequential writes), randread (random reads), randwrite (random writes), or mixed. We focus only on the two basic access patterns which happen mostly with Big Data workload: sequential read and sequential write. A typical example is the Hadoop File System (HDFS) which writes data in large contiguous chunks on disk, which in turn means data is written and read in large sequential operations. For HDFS, this minimizes drive seek operations - one of the slowest operations a mechanical disk can perform - and results in better performance when streaming data to workers (locally or remotely) \cite[Chapter~2]{HadoopOperationsBook}. 
+  \item \textbf{rw} defines the kind of disk access pattern: read (sequential reads), write (sequential writes), randread (random reads), randwrite (random writes), or mixed. We focus only on the two basic access patterns which happen mostly with Big Data workload: sequential read and sequential write. A typical example is the Hadoop File System (HDFS) which writes data in large contiguous chunks on disk, which in turn means data is written and read in large sequential operations. For HDFS, this minimizes drive seek operations - one of the slowest operations a mechanical disk can perform - and results in better performance when streaming data to workers (locally or remotely) \cite[Chapter~2]{HadoopOperationsBook}.
  \item \textbf{size} is the total size of input data for this job. FIO will run until this many bytes of data has been transferred. We choose the total transfer volume to be 4 GBs. When doing read operator, FIO firstly writes the data to the disk. If the data size is too small, it will be cached at the OS buffer and hardware buffer. The subsequence read operator then will read from the cache but not actually read from the disk. This data size helps us to avoid many kinds of buffering from the application layer to the OS layer and then to the hardware layer. The total amount of data will be distributed equally to all the parallel threads that join the test.
-  \item \textbf{direct I/O} set the value of O\_DIRECT when opening the file to read or write. I/O operations performed against files opened with O\_DIRECT bypass the kernel's page cache, writing directly to the storage. The storage may itself store the data in its cache. In our case, the storage has 512 MBs of write-back cache at the RAID controller and 64 MBs cache at the disk. Big Data application often uses the cache since the characteristics of the data is very suited to use with the cache. The data was written once and read many times. When application read the data, they do not need to modify it. So they do not care much about the integrity between the processing data and the storage data. The intermediate data which is generated during the execution will be read very soon after. Using cache is very effective for this. However, if we enable page cache, we are measure the performance of the cache, but not the storage. 
+  \item \textbf{direct I/O} set the value of O\_DIRECT when opening the file to read or write. I/O operations performed against files opened with O\_DIRECT bypass the kernel's page cache, writing directly to the storage. The storage may itself store the data in its cache. In our case, the storage has 512 MBs of write-back cache at the RAID controller and 64 MBs cache at the disk. Big Data application often uses the cache since the characteristics of the data is very suited to use with the cache. The data was written once and read many times. When application read the data, they do not need to modify it. So they do not care much about the integrity between the processing data and the storage data. The intermediate data which is generated during the execution will be read very soon after. Using cache is very effective for this. However, if we enable page cache, we are measure the performance of the cache, but not the storage.
 %  \item \textbf{iodepth} defines the I/O depth of the system. This defines how many IO requests to keep in flight against the file. The default is 1 for each file defined in the job description. This value can be overridden with a larger value for higher concurrency. We use I/O depth of 32 after run some initial tests to get the setting of the maximum performance of the disk. In fact, the default I/O depth in some of the Linux distributions can even be set upto 256 or 512.
   \item \textbf{ioengine} indicates the type of I/O library to use at the application. Linux supports 3 different I/O library to use: Synchronous IO (sync), Asynchronous Linux I/O (libaio), and POSIX AIO. With synchronous IO, request is sent one by one. The caller is blocked and wait for the return of the result. Native Asynchronpus IO helps to overlaps processing with I/O Operations. Application can submit batch of I/O requests without waiting for completion (required specify I/O depth which is the number of in-flight requests at a point in time). This benefits physical I/O in particular when prefetching data. Besides, it allows to accumulate read or write requests so that the I/O subsystem can optimize performance by grouping or reordering the IO requests in favor of sequential access and large request. It helps to separate calls for submission and completion indication and pipelines operations to improve throughput. It also helps to improved utilization of CPU and devices. The last library is POSIX AIO. POSIX AIOuses multiple synchronous threads from a thread pool to mimic the native AIO. QEMU uing POSIX AIO as the default when working with VM images. It also supports libaio but we have to specify in the VM configuration to enable it. We set ioengine to ``sync`` since HDFS uses Java IO class FileInputStream and FileOutputStream to serve the data to the workers or write the data to disk. All I/O is viewed as the movement of single bytes, one at a time, through an object called a Stream. These streams are synchronous. That means, that when a thread invokes a read() or write(), that thread is blocked until there is some data to read, or the data is fully written. The thread will be in blocked state for this period.
 %This is a deadlock, the type of data of Big Data is option logs and others that write one but read many. Big Data application don't need to modify it, they just select the important data to cache to improve the performance. So, when we design the workload for FIO, should we also enable the cache? If we enable the cache we will only measure the memory speed, not the disk. Then if we remove the cache, what we haven't mimic the Big Data workload, so it is not representative.
@@ -371,46 +371,63 @@ For disk utilization, we also collect from 2 sources. At the VM, we used the ext
 
 \subsection{Aggregated Throughput}
 
+%\begin{figure*}[t]
+%   \centering
+%   \begin{subfigure}[b]{0.3\textwidth}
+%     \includegraphics[width=\textwidth]{figures/throughput_cfq_read.pdf}
+%     \caption{CFQ}
+%     \label{fig:aggthroughput_cfq_read}
+%   \end{subfigure}%
+%   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%     %(or a blank line to force the subfigure onto a new line)
+%   \begin{subfigure}[b]{0.3\textwidth}
+%     \includegraphics[width=\textwidth]{figures/throughput_deadline_read.pdf}
+%     \caption{Deadline}
+%     \label{fig:aggthroughput_dealine_read}
+%   \end{subfigure}
+%    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%      %(or a blank line to force the subfigure onto a new line)
+%   \begin{subfigure}[b]{0.3\textwidth}
+%     \includegraphics[width=\textwidth]{figures/throughput_noop_read.pdf}
+%     \caption{Noop}
+%     \label{fig:aggthroughput_noop_read}
+%   \end{subfigure}
+%   \hfill
+%   \begin{subfigure}[b]{0.3\textwidth}
+%     \includegraphics[width=\textwidth]{figures/throughput_cfq_write.pdf}
+%     \caption{CFQ}
+%     \label{fig:aggthroughput_cfq_write}
+%   \end{subfigure}%
+%   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%     %(or a blank line to force the subfigure onto a new line)
+%   \begin{subfigure}[b]{0.3\textwidth}
+%     \includegraphics[width=\textwidth]{figures/throughput_deadline_write.pdf}
+%     \caption{Deadline}
+%     \label{fig:aggthroughput_deadline_write}
+%   \end{subfigure}
+%    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
+%      %(or a blank line to force the subfigure onto a new line)
+%   \begin{subfigure}[b]{0.3\textwidth}
+%     \includegraphics[width=\textwidth]{figures/throughput_noop_write.pdf}
+%     \caption{Noop}
+%     \label{fig:aggthroughput_noop_write}
+%   \end{subfigure}
+%   \caption{Aggregated throughput with the three I/O schedulers}\label{fig:aggthroughput}
+%\end{figure*}
+
 \begin{figure*}[t]
    \centering
-   \begin{subfigure}[b]{0.3\textwidth}
-     \includegraphics[width=\textwidth]{figures/throughput_cfq_read.pdf}
+   \begin{subfigure}[b]{0.5\textwidth}
+     \includegraphics[width=\textwidth]{figures/cfq.pdf}
      \caption{CFQ}
-     \label{fig:aggthroughput_cfq_read}
+     \label{fig:aggthroughput_cfq}
    \end{subfigure}%
    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
      %(or a blank line to force the subfigure onto a new line)
-   \begin{subfigure}[b]{0.3\textwidth}
-     \includegraphics[width=\textwidth]{figures/throughput_deadline_read.pdf}
+   \begin{subfigure}[b]{0.5\textwidth}
+     \includegraphics[width=\textwidth]{figures/deadline.pdf}
      \caption{Deadline}
-     \label{fig:aggthroughput_dealine_read}
-   \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-      %(or a blank line to force the subfigure onto a new line)
-   \begin{subfigure}[b]{0.3\textwidth}
-     \includegraphics[width=\textwidth]{figures/throughput_noop_read.pdf}
-     \caption{Noop}
-     \label{fig:aggthroughput_noop_read}
-   \end{subfigure}
-   \hfill
-   \begin{subfigure}[b]{0.3\textwidth}
-     \includegraphics[width=\textwidth]{figures/throughput_cfq_write.pdf}
-     \caption{CFQ}
-     \label{fig:aggthroughput_cfq_write}
-   \end{subfigure}%
-   ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-     %(or a blank line to force the subfigure onto a new line)
-   \begin{subfigure}[b]{0.3\textwidth}
-     \includegraphics[width=\textwidth]{figures/throughput_deadline_write.pdf}
-     \caption{Deadline}
-     \label{fig:aggthroughput_deadline_write}
-   \end{subfigure}
-    ~ %add desired spacing between images, e. g. ~, \quad, \qquad, \hfill etc.
-      %(or a blank line to force the subfigure onto a new line)
-   \begin{subfigure}[b]{0.3\textwidth}
-     \includegraphics[width=\textwidth]{figures/throughput_noop_write.pdf}
-     \caption{Noop}
-     \label{fig:aggthroughput_noop_write}
+     \label{fig:aggthroughput_dealine}
    \end{subfigure}
    \caption{Aggregated throughput with the three I/O schedulers}\label{fig:aggthroughput}
 \end{figure*}
