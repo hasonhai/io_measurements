@@ -1,0 +1,3 @@
+Device:         rrqm/s   wrqm/s     r/s     w/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await r_await w_await  svctm  %util
+sda              11.83     4.05  352.91  335.14  1736.75  3550.45    15.37     0.35    0.52    2.54    1.07   0.12   8.45
+sda               0.00     0.00    5.00  514.00    20.00 126412.00   487.21    16.64   15.95   12.80   15.98   0.57  29.60

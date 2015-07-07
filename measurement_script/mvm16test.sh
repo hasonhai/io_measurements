@@ -16,7 +16,7 @@ do
    ssh -i $ACCESSKEY $USERNAME@$server "nohup /home/ubuntu/server 3000 > server.out 2> server.err < /dev/null &"
 done
 
-for i in 01 02 03 04 05 06 07 08 09 10 ; do
+for i in 01 02 03 04 05 ; do
 
 time ./test.sh $ACCESSKEY $USERNAME testdir/sequential-read-1thread-2vm-test.fio $TWOVM $DEVICE VM SSHLESS
 mv ${DEVICE}.diskstat testout/TwoVM${VMSPEC}SeqRead1thread${i}.diskstat
