@@ -24,6 +24,14 @@ if [ "$Mode" = "PROCESS" ]; then # TODO: Fix Bugs fot this section
     echo wait for job $job
     wait $job || echo $job fail
   done
+elif [ "$Mode" = "MEMORYLIMIT" ]; then
+  if [ ! -d "/sys/fs/cgroup/memory/fiogroup" ]; then
+     sudo apt-get install cgroup-bin -y
+     sudo cgcreate -g memory:fiogroup
+     sudo cgset -r memory.limit_in_bytes=$((128*1024*1024)) fiogroup
+     sudo chown -R `whoami` /sys/fs/cgroup/memory/fiogroup
+  fi
+  cgexec -g memory:fiogroup $FIO $Conf --minimal > diskout/$HostName-$Now.diskout
 else
   $FIO $Conf --minimal > diskout/$HostName-$Now.diskout
 fi

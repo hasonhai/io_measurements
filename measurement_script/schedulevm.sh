@@ -2,7 +2,7 @@
 appdir="/home/sonhai/io_measurements/measurement_script"
 DEVICE="sda"
 SCHEDULER="deadline"
-OUTPUTDIR="bigfoot12_cache_deadline_sync_nodirect"
+OUTPUTDIR="bigfoot12_cache_deadline_sync_nodirect_4k_limitmemory"
 if [ ! -d $appdir/$OUTPUTDIR ]; then
     mkdir -p $appdir/$OUTPUTDIR
 fi

@@ -65,7 +65,7 @@ elif [ "$COMMAND" = "run" ]; then
     # SETUPDONE="$(ssh -i $KEY $USER@$TARGET 'cat ~/MrBentest/.setuptest')"
     # if [ $SETUPDONE -eq 1 ]; then
         echo "Running test on $TARGET"
-        ssh -tt -i $KEY $USER@$TARGET "sh ~/MrBentest/targetrun.sh MrBentest/$CONFNAME $TestDir"
+        ssh -tt -i $KEY $USER@$TARGET "sh ~/MrBentest/targetrun.sh MrBentest/$CONFNAME $TestDir MEMORYLIMIT"
     # else
     #    echo "Please setup host first"
     #    exit 1
