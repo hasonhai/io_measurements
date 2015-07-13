@@ -21,6 +21,9 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
             DISKUSAGE=$( cat dataclean.tmp | grep "sd" | awk '{ sum += $NF; n++ } END { if (n > 0) print sum / n; }' )
             rm dataclean.tmp
         fi
+        if [ "$DISKUSAGE" = "" ]; then
+            DISKUSAGE=0
+        fi
 
     case $PLATFORM in
         OneVMOneCore) P="01VM01C";;

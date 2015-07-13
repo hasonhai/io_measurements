@@ -86,6 +86,7 @@ for TESTNO in 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20; do
         16) TH="16";;
         *) P="Unknown";;
     esac
+    if [ "$cpuu" = "" ]; then cpuu=0; fi
     echo ${AP}${P}TH${TH}T${TESTNO} $cpuu
     fi
 done
